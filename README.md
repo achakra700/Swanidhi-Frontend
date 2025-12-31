@@ -47,6 +47,7 @@ Swanidhi is a modern, AI-powered healthcare management system designed to bridge
    Create a `.env.local` file and add your credentials:
    ```env
    VITE_GEMINI_API_KEY=your_gemini_api_key_here
+   VITE_API_BASE_URL=https://swanidhi-backend-g5f7c2gjfkh8drbt.centralindia-01.azurewebsites.net
    ```
 
 4. **Run Development Server:**
