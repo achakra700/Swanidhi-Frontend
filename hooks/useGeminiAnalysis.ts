@@ -6,8 +6,8 @@ export const useGeminiAnalysis = () => {
   return useMutation({
     mutationFn: async (narrative: string) => {
       // Fix: Always initialize GoogleGenAI inside the call context to ensure up-to-date config and API key
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      
+      const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
+
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Analyze this medical blood request narrative and return a JSON analysis: 
