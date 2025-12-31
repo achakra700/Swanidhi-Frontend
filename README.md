@@ -63,7 +63,17 @@ To build the project for production:
 npm run build
 ```
 
-The production-ready files will be available in the `dist` directory. This project is optimized for deployment on platforms like Netlify and Vercel.
+The production-ready files will be available in the `dist` directory. This project is optimized for deployment on platforms like Vercel and Netlify.
+
+### 🔺 Deploying to Vercel
+
+1. **Connect your GitHub repository** to Vercel.
+2. **Framework Preset**: Vite.
+3. **Build Command**: `npm run build`.
+4. **Output Directory**: `dist`.
+5. **Environment Variables**:
+   - `VITE_GEMINI_API_KEY`: Your Google Gemini API Key.
+   - `VITE_API_BASE_URL`: `https://swanidhi-backend-g5f7c2gjfkh8drbt.centralindia-01.azurewebsites.net`
 
 ---
 

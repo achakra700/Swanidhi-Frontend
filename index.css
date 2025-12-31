@@ -1,30 +1,81 @@
-/* Global styles for Swanidhi */
+@import "tailwindcss";
+
 :root {
-  --swanidhi-red: #e11d48;
-  --swanidhi-slate: #0f172a;
-  --system-bg: #f8fafc;
+    --swanidhi-red: #e11d48;
+    --swanidhi-slate: #0f172a;
+    --system-bg: #f8fafc;
+    --font-main: 'Plus Jakarta Sans', sans-serif;
+    --bezier: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 body {
-  margin: 0;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    font-family: var(--font-main);
+    background-color: var(--system-bg);
+    color: var(--swanidhi-slate);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    margin: 0;
 }
 
-/* Custom scrollbar to match the design */
+.mono {
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* Smooth Scroll */
+html {
+    scroll-behavior: smooth;
+}
+
+@keyframes pulse-soft {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.8;
+        transform: scale(0.98);
+    }
+}
+
+.animate-pulse-soft {
+    animation: pulse-soft 3s infinite ease-in-out;
+}
+
+input::placeholder {
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+/* Reveal Animation Utility */
+.reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 1s var(--bezier);
+}
+
+.reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+    width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+    background: #f1f5f9;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+    background: #cbd5e1;
+    border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+    background: #94a3b8;
 }
