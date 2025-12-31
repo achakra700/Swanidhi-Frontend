@@ -6,7 +6,7 @@ Swanidhi is a modern, AI-powered healthcare management system designed to bridge
 
 ## 🚀 Key Features
 
-- **AI-Driven Symptom Analysis**: Powered by Google Gemini for accurate health insights.
+- **Digital Health Insights**: Integrated national health companion.
 - **Modern User Dashboard**: Real-time health metrics and activity tracking.
 - **3D Visualization**: Interactive medical models using React Three Fiber.
 - **Smart Forms**: Validated patient and donor registration systems using Zod and React Hook Form.
@@ -18,7 +18,6 @@ Swanidhi is a modern, AI-powered healthcare management system designed to bridge
 - **Styling**: Vanilla CSS with modern Glassmorphism principles
 - **State Management**: TanStack Query (React Query)
 - **3D Engine**: Three.js / React Three Fiber
-- **AI**: Google Generative AI (Gemini Studio)
 - **Validation**: Zod & React Hook Form
 
 ## 💻 Getting Started
@@ -46,7 +45,6 @@ Swanidhi is a modern, AI-powered healthcare management system designed to bridge
 3. **Configure Environment:**
    Create a `.env.local` file and add your credentials:
    ```env
-   VITE_GEMINI_API_KEY=your_gemini_api_key_here
    VITE_API_BASE_URL=https://swanidhi-backend-g5f7c2gjfkh8drbt.centralindia-01.azurewebsites.net
    ```
 
@@ -72,7 +70,6 @@ The production-ready files will be available in the `dist` directory. This proje
 3. **Build Command**: `npm run build`.
 4. **Output Directory**: `dist`.
 5. **Environment Variables**:
-   - `VITE_GEMINI_API_KEY`: Your Google Gemini API Key.
    - `VITE_API_BASE_URL`: `https://swanidhi-backend-g5f7c2gjfkh8drbt.centralindia-01.azurewebsites.net`
 
 ---
