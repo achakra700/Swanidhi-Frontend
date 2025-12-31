@@ -1,20 +1,69 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Swanidhi - AI Powered Digital Health Companion
 
-# Run and deploy your AI Studio app
+Swanidhi is a modern, AI-powered healthcare management system designed to bridge the gap between patients and healthcare providers through intuitive interfaces and advanced AI capabilities.
 
-This contains everything you need to run your app locally.
+![Banner](https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6)
 
-View your app in AI Studio: https://ai.studio/apps/drive/1Wo_m9tLclAD8NSO65Sg8ihpta_t3adta
+## 🚀 Key Features
 
-## Run Locally
+- **AI-Driven Symptom Analysis**: Powered by Google Gemini for accurate health insights.
+- **Modern User Dashboard**: Real-time health metrics and activity tracking.
+- **3D Visualization**: Interactive medical models using React Three Fiber.
+- **Smart Forms**: Validated patient and donor registration systems using Zod and React Hook Form.
+- **Secure Authentication**: Integrated role-based access control.
 
-**Prerequisites:**  Node.js
+## 🛠️ Tech Stack
 
+- **Framework**: React 18 / Vite
+- **Styling**: Vanilla CSS with modern Glassmorphism principles
+- **State Management**: TanStack Query (React Query)
+- **3D Engine**: Three.js / React Three Fiber
+- **AI**: Google Generative AI (Gemini Studio)
+- **Validation**: Zod & React Hook Form
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## 💻 Getting Started
+
+### Prerequisites
+
+- Node.js (v18 or higher)
+- npm or yarn
+
+### Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/achakra700/Swanidhi-Frontend.git
+   cd Swanidhi-Frontend
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install --legacy-peer-deps
+   ```
+   > [!NOTE]
+   > Use `--legacy-peer-deps` to resolve specific version alignments between React 18 and Three.js ecosystem.
+
+3. **Configure Environment:**
+   Create a `.env.local` file and add your credentials:
+   ```env
+   VITE_GEMINI_API_KEY=your_gemini_api_key_here
+   ```
+
+4. **Run Development Server:**
+   ```bash
+   npm run dev
+   ```
+
+## 🏗️ Build and Deploy
+
+To build the project for production:
+
+```bash
+npm run build
+```
+
+The production-ready files will be available in the `dist` directory. This project is optimized for deployment on platforms like Netlify and Vercel.
+
+---
+
+Built with ❤️ for a healthier future.
