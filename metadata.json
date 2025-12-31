@@ -1,0 +1,7 @@
+{
+  "name": "SWANIDHI",
+  "description": "A high-performance healthcare emergency system for managing blood requests, inventory, and donors in real-time.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
