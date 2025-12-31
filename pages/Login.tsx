@@ -4,47 +4,52 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { UserRole } from '../types';
 import FormField from '../components/ui/FormField';
+import api from '../services/api';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [role, setRole] = useState<UserRole>(UserRole.HOSPITAL);
   const [isAuthorizing, setIsAuthorizing] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsAuthorizing(true);
-    // Simulation
-    setTimeout(() => {
-      const mockUser = {
-        id: 'NODE-' + Math.floor(Math.random() * 9000),
-        name: 'Authorized User',
-        email: 'terminal@swanidhi.gov.in',
-        role,
-        orgName: role === UserRole.HOSPITAL ? 'General Hospital Delta' : 'Regional Blood Reserve 4'
-      };
-      login('mock_jwt_token', mockUser);
-      
-      const routes = {
+    setError(null);
+
+    try {
+      const response = await api.post('/api/auth/login', { email, password });
+      const { token, user } = response.data;
+
+      login(token, user);
+
+      const routes: Record<string, string> = {
         [UserRole.ADMIN]: '/admin',
         [UserRole.HOSPITAL]: '/hospital',
         [UserRole.BLOOD_BANK]: '/bloodbank',
         [UserRole.DONOR]: '/donor',
         [UserRole.PATIENT]: '/patient',
       };
-      navigate(routes[role]);
-    }, 1500);
+
+      navigate(routes[user.role] || '/');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Access Denied: Invalid Credentials');
+    } finally {
+      setIsAuthorizing(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 relative">
       {/* Back to Home Action */}
-      <Link 
-        to="/" 
+      <Link
+        to="/"
         className="absolute top-8 left-8 flex items-center gap-3 px-5 py-3 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-slate-900 hover:border-slate-900 transition-all duration-300 shadow-sm"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path d="M10 19l-7-7m0 0l7-7m-7 7h18" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M10 19l-7-7m0 0l7-7m-7 7h18" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
         Return to Grid
       </Link>
@@ -62,40 +67,32 @@ const Login: React.FC = () => {
         </div>
 
         <form onSubmit={handleLogin} className="p-10 space-y-8">
-          <div className="space-y-3">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Terminal Role</label>
-            <div className="grid grid-cols-2 gap-2">
-              {[UserRole.HOSPITAL, UserRole.BLOOD_BANK, UserRole.ADMIN, UserRole.DONOR, UserRole.PATIENT].map(r => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => setRole(r)}
-                  className={`px-4 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border ${
-                    role === r 
-                      ? 'bg-slate-900 text-white border-slate-900 shadow-lg' 
-                      : 'bg-white text-slate-400 border-slate-100 hover:border-slate-300'
-                  }`}
-                >
-                  {r.replace('_', ' ')}
-                </button>
-              ))}
+          {error && (
+            <div className="bg-rose-50 border border-rose-100 p-4 rounded-xl">
+              <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest leading-relaxed">
+                {error}
+              </p>
             </div>
-          </div>
+          )}
 
           <div className="space-y-5">
             <FormField id="identifier" label="Institutional Identifier" required>
-              <input 
-                type="email" 
+              <input
+                type="email"
                 required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-xl focus:bg-white focus:ring-1 focus:ring-slate-900 focus:outline-none transition-all text-sm font-bold text-slate-900"
                 placeholder="ID @ ORGANIZATION"
               />
             </FormField>
-            
+
             <FormField id="token" label="Security Token" required>
-              <input 
-                type="password" 
+              <input
+                type="password"
                 required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-xl focus:bg-white focus:ring-1 focus:ring-slate-900 focus:outline-none transition-all text-sm font-bold text-slate-900"
                 placeholder="••••••••••••"
               />

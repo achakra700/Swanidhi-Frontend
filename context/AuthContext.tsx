@@ -2,6 +2,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { User, AuthState, UserRole } from '../types';
 
+import { signalRService } from '../services/signalR';
+
 interface AuthContextType extends AuthState {
   login: (token: string, user: User) => void;
   logout: () => void;
@@ -24,9 +26,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isAuthenticated: false,
       isLoading: false,
     });
-    // Redirect to login if on a protected route
     if (!window.location.hash.includes('/login')) {
       window.location.hash = '#/login';
+    }
+  }, []);
+
+  const initializeSignalR = useCallback(async (user: User) => {
+    try {
+      await signalRService.start();
+      await signalRService.joinRoleGroup(user.role, user.id);
+      if (user.role === UserRole.ADMIN) {
+        await signalRService.joinRoleGroup('admin', 'global');
+      }
+    } catch (err) {
+      // Production path: silent failure for background real-time features
     }
   }, []);
 
@@ -34,17 +47,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const initAuth = () => {
       const storedUser = localStorage.getItem('ls_user');
       const storedToken = localStorage.getItem('ls_token');
-      
+
       if (storedUser && storedToken) {
         try {
           const user = JSON.parse(storedUser);
-          // Simulation: Check if token is "expired" (mock logic)
-          // In real implementation, decode JWT and check 'exp' claim
           setState({
             user,
             isAuthenticated: true,
             isLoading: false,
           });
+          initializeSignalR(user);
         } catch (e) {
           logout();
         }
@@ -55,7 +67,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     initAuth();
 
-    // Auto-logout simulation: Listen for storage changes (e.g., from other tabs)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'ls_token' && !e.newValue) {
         logout();
@@ -64,7 +75,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, [logout]);
+  }, [logout, initializeSignalR]);
 
   const login = (token: string, user: User) => {
     localStorage.setItem('ls_token', token);
@@ -74,12 +85,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isAuthenticated: true,
       isLoading: false,
     });
+    initializeSignalR(user);
 
-    // Simulated Auto-logout after 1 hour of "token life" for security demo
+    // Auto-logout after 8 hours (standard shift)
     setTimeout(() => {
-      console.warn('Session expired - Auto logging out');
       logout();
-    }, 3600000); // 1 hour
+    }, 28800000);
   };
 
   return (

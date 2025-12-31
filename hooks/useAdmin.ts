@@ -1,7 +1,22 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
-import { AdminStats, OrganizationApplication } from './useAdminInterfaces';
+
+export interface AdminStats {
+  hospitals: number;
+  banks: number;
+  donors: number;
+  activeSos: number;
+}
+
+export interface OrganizationApplication {
+  id: string;
+  name: string;
+  type: 'HOSPITAL' | 'BLOOD_BANK';
+  regId: string;
+  location: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  createdAt: string;
+}
 
 export const useAdminStats = () => {
   return useQuery<AdminStats>({
@@ -55,5 +70,41 @@ export const useSystemHealth = () => {
       return data;
     },
     refetchInterval: 60000
+  });
+};
+
+export const useAdminDonors = () => {
+  return useQuery({
+    queryKey: ['admin-donors'],
+    queryFn: async () => {
+      const { data } = await api.get('/api/donors/all');
+      return data;
+    }
+  });
+};
+
+export const useUpdateDonorStatus = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const { data } = await api.patch(`/api/donors/${id}/status`, { status });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-donors'] });
+    }
+  });
+};
+
+export const useRegisterDonor = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: { name: string, bloodType: string }) => {
+      const { data } = await api.post('/api/donors/register', payload);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-donors'] });
+    }
   });
 };

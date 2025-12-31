@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useAdminStats, usePendingOrganizations, useSystemHealth, useApproveOrganization, useRejectOrganization } from '../hooks/useAdmin';
+import { useAdminStats, usePendingOrganizations, useSystemHealth, useApproveOrganization, useRejectOrganization, useAdminDonors, useUpdateDonorStatus } from '../hooks/useAdmin';
 import { useAuditLogs } from '../hooks/useAuditLogs';
 import { useRealtimeSosList } from '../hooks/useRealtimeSos';
 import { DashboardSkeleton } from '../components/ui/Skeleton';
@@ -21,7 +21,7 @@ const AdminDashboard: React.FC = () => {
   const { showToast } = useToast();
   const location = useLocation();
   const [activeView, setActiveView] = useState<AdminView>('OVERVIEW');
-  
+
   // Update view based on URL path
   useEffect(() => {
     if (location.pathname.includes('/orgs')) setActiveView('ORG_APPROVAL');
@@ -34,14 +34,16 @@ const AdminDashboard: React.FC = () => {
 
   // Data hooks
   const { data: stats, isLoading: statsLoading } = useAdminStats();
-  const { data: orgs, isLoading: orgsLoading, refetch: refetchOrgs } = usePendingOrganizations();
+  const { data: orgs, isLoading: orgsLoading } = usePendingOrganizations();
   const { data: health, isLoading: healthLoading } = useSystemHealth();
   const { data: logs } = useAuditLogs();
   const { data: sosList } = useRealtimeSosList();
+  const { data: donorsFromApi, isLoading: donorsLoading } = useAdminDonors();
 
   // Mutations
   const approveMutation = useApproveOrganization();
   const rejectMutation = useRejectOrganization();
+  const updateDonorStatusMutation = useUpdateDonorStatus();
 
   // UI State
   const [selectedSos, setSelectedSos] = useState<SOSRequest | null>(null);
@@ -63,31 +65,14 @@ const AdminDashboard: React.FC = () => {
   const [auditFilterDateStart, setAuditFilterDateStart] = useState('');
   const [auditFilterDateEnd, setAuditFilterDateEnd] = useState('');
 
-  // Donor Mock State
-  const [mockDonors, setMockDonors] = useState<any[]>([
-    { id: 'D-882', name: 'Ananya Iyer', bloodType: 'O-', status: EligibilityStatus.PENDING_VERIFICATION, registeredBy: 'Metro Bank', email: 'ananya@mail.com', phone: '+91 9922883311', history: [
-      { date: '2024-02-10', action: 'ID_VERIFIED', details: 'Aadhar handshake success.' },
-      { date: '2024-02-15', action: 'MEDICAL_CLEARANCE', details: 'Passed hematology screening.' }
-    ]},
-    { id: 'D-119', name: 'Kabir Das', bloodType: 'AB+', status: EligibilityStatus.ELIGIBLE, registeredBy: 'City Reserve', email: 'kabir.das@gov.in', phone: '+91 8877112200', history: [
-      { date: '2023-12-01', action: 'ONBOARDED', details: 'Initial grid registration.' },
-      { date: '2024-01-05', action: 'DONATION_COMPLETE', details: 'Donated 1U AB+ at City Reserve.' }
-    ]},
-    { id: 'D-334', name: 'Meera Nair', bloodType: 'B+', status: EligibilityStatus.ELIGIBLE, registeredBy: 'Regional Hub-9', email: 'meera@nair.net', phone: '+91 7766554433', history: [
-      { date: '2024-01-20', action: 'ONBOARDED', details: 'Node activation protocol.' }
-    ]},
-    { id: 'D-401', name: 'Rahul Varma', bloodType: 'A-', status: EligibilityStatus.DEFERRED, registeredBy: 'Sector-4 Hub', email: 'rahul@varma.com', phone: '+91 9100112233', history: [
-      { date: '2024-03-01', action: 'STATUS_CHANGE', details: 'Deferred for 3 months due to travel.' }
-    ]}
-  ]);
-
   const filteredDonors = useMemo(() => {
-    return mockDonors.filter(d => 
-      d.name.toLowerCase().includes(donorSearch.toLowerCase()) || 
+    if (!donorsFromApi) return [];
+    return donorsFromApi.filter((d: any) =>
+      d.name.toLowerCase().includes(donorSearch.toLowerCase()) ||
       d.bloodType.toLowerCase().includes(donorSearch.toLowerCase()) ||
       d.id.toLowerCase().includes(donorSearch.toLowerCase())
     );
-  }, [mockDonors, donorSearch]);
+  }, [donorsFromApi, donorSearch]);
 
   const filteredSosList = useMemo(() => {
     if (!sosList) return [];
@@ -102,36 +87,26 @@ const AdminDashboard: React.FC = () => {
   const filteredLogs = useMemo(() => {
     if (!logs) return [];
     return logs.filter(log => {
-      const uMatch = !auditFilterUser || 
-        log.userId.toLowerCase().includes(auditFilterUser.toLowerCase()) || 
+      const uMatch = !auditFilterUser ||
+        log.userId.toLowerCase().includes(auditFilterUser.toLowerCase()) ||
         log.userName.toLowerCase().includes(auditFilterUser.toLowerCase());
-      
+
       const aMatch = auditFilterAction === 'ALL' || log.action === auditFilterAction;
-      
+
       const logDate = new Date(log.timestamp).toISOString().split('T')[0];
       const startMatch = !auditFilterDateStart || logDate >= auditFilterDateStart;
       const endMatch = !auditFilterDateEnd || logDate <= auditFilterDateEnd;
-      
+
       return uMatch && aMatch && startMatch && endMatch;
     });
   }, [logs, auditFilterUser, auditFilterAction, auditFilterDateStart, auditFilterDateEnd]);
 
   const handleDonorStatus = (id: string, nextStatus: EligibilityStatus) => {
-    setMockDonors(prev => prev.map(d => {
-      if (d.id === id) {
-        return { 
-          ...d, 
-          status: nextStatus,
-          history: [{ 
-            date: new Date().toISOString().split('T')[0], 
-            action: 'ADMIN_OVERRIDE', 
-            details: `Status set to ${nextStatus} by ${user?.name}` 
-          }, ...d.history]
-        };
+    updateDonorStatusMutation.mutate({ id, status: nextStatus }, {
+      onSuccess: () => {
+        showToast(`Donor ${id} synchronized: ${nextStatus}`, 'success');
       }
-      return d;
-    }));
-    showToast(`Donor ${id} synchronized: ${nextStatus}`, 'success');
+    });
   };
 
   const handleExportCSV = () => {
@@ -162,11 +137,11 @@ const AdminDashboard: React.FC = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     showToast('Registry archive dispatched to local storage.', 'success');
   };
 
-  if (statsLoading || orgsLoading || healthLoading) return <div className="p-10"><DashboardSkeleton /></div>;
+  if (statsLoading || orgsLoading || healthLoading || donorsLoading) return <div className="p-10"><DashboardSkeleton /></div>;
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-20">
@@ -235,14 +210,14 @@ const AdminDashboard: React.FC = () => {
         <div className="space-y-6">
           <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row gap-6 items-center">
             <div className="relative flex-1 w-full">
-              <input 
-                type="text" 
-                placeholder="SEARCH NAME, ID OR BLOOD GROUP..." 
+              <input
+                type="text"
+                placeholder="SEARCH NAME, ID OR BLOOD GROUP..."
                 value={donorSearch}
                 onChange={e => setDonorSearch(e.target.value)}
-                className="w-full pl-12 pr-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-slate-950 focus:outline-none transition-all text-[11px] font-black uppercase tracking-widest shadow-inner" 
+                className="w-full pl-12 pr-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-slate-950 focus:outline-none transition-all text-[11px] font-black uppercase tracking-widest shadow-inner"
               />
-              <svg className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" strokeWidth="3"/></svg>
+              <svg className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" strokeWidth="3" /></svg>
             </div>
             <div className="flex items-center gap-4 text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">
               <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
@@ -265,17 +240,17 @@ const AdminDashboard: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {filteredDonors.length > 0 ? (
-                  filteredDonors.map(donor => (
+                  filteredDonors.map((donor: any) => (
                     <tr key={donor.id} className="hover:bg-slate-50/50 transition-colors group">
                       <td className="px-10 py-6">
                         <div className="flex items-center gap-4">
-                           <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-black text-xs shadow-lg group-hover:scale-105 transition-transform">
-                             {donor.name.charAt(0)}
-                           </div>
-                           <div>
-                              <p className="text-sm font-black text-slate-950 uppercase tracking-tight">{donor.name}</p>
-                              <p className="text-[9px] font-mono text-slate-400 uppercase mt-1">ID: {donor.id} • SRC: {donor.registeredBy}</p>
-                           </div>
+                          <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-black text-xs shadow-lg group-hover:scale-105 transition-transform">
+                            {donor.name.charAt(0)}
+                          </div>
+                          <div>
+                            <p className="text-sm font-black text-slate-950 uppercase tracking-tight">{donor.name}</p>
+                            <p className="text-[9px] font-mono text-slate-400 uppercase mt-1">ID: {donor.id} • SRC: {donor.registeredBy}</p>
+                          </div>
                         </div>
                       </td>
                       <td className="px-10 py-6">
@@ -286,7 +261,7 @@ const AdminDashboard: React.FC = () => {
                       </td>
                       <td className="px-10 py-6 text-right">
                         <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all">
-                          <button 
+                          <button
                             onClick={() => setSelectedDonorHistory(donor)}
                             className="text-[9px] font-black uppercase tracking-widest text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors"
                           >
@@ -298,13 +273,12 @@ const AdminDashboard: React.FC = () => {
                               <button onClick={() => handleDonorStatus(donor.id, EligibilityStatus.INELIGIBLE)} className="bg-rose-600 text-white px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest shadow-lg shadow-rose-50">Decline</button>
                             </>
                           ) : (
-                            <button 
+                            <button
                               onClick={() => handleDonorStatus(donor.id, donor.status === EligibilityStatus.ELIGIBLE ? EligibilityStatus.DEFERRED : EligibilityStatus.ELIGIBLE)}
-                              className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${
-                                donor.status === EligibilityStatus.ELIGIBLE 
-                                ? 'border border-rose-200 text-rose-600 hover:bg-rose-50' 
+                              className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${donor.status === EligibilityStatus.ELIGIBLE
+                                ? 'border border-rose-200 text-rose-600 hover:bg-rose-50'
                                 : 'bg-slate-900 text-white shadow-lg'
-                              }`}
+                                }`}
                             >
                               {donor.status === EligibilityStatus.ELIGIBLE ? 'Suspend Account' : 'Activate Node'}
                             </button>
@@ -377,7 +351,7 @@ const AdminDashboard: React.FC = () => {
           <div className="bg-white p-8 rounded-2xl border border-slate-200 space-y-6">
             <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Infrastructure Nodes</h3>
             <div className="space-y-4">
-              {health?.probes.map(p => (
+              {health?.probes.map((p: any) => (
                 <div key={p.name} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
                   <div className="flex items-center gap-3">
                     <div className={`w-2.5 h-2.5 rounded-full ${p.status === 'UP' ? 'bg-emerald-500' : 'bg-rose-500'} animate-pulse`}></div>
@@ -408,16 +382,16 @@ const AdminDashboard: React.FC = () => {
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 flex-1 w-full">
                 <FormField label="Operator / User ID">
-                  <input 
-                    type="text" 
-                    placeholder="NAME OR ID..." 
+                  <input
+                    type="text"
+                    placeholder="NAME OR ID..."
                     value={auditFilterUser}
                     onChange={e => setAuditFilterUser(e.target.value)}
-                    className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-bold uppercase focus:ring-2 focus:ring-slate-900 outline-none transition-all" 
+                    className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-bold uppercase focus:ring-2 focus:ring-slate-900 outline-none transition-all"
                   />
                 </FormField>
                 <FormField label="Action Protocol">
-                  <select 
+                  <select
                     value={auditFilterAction}
                     onChange={e => setAuditFilterAction(e.target.value)}
                     className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-black uppercase focus:ring-2 focus:ring-slate-900 outline-none transition-all cursor-pointer"
@@ -427,26 +401,26 @@ const AdminDashboard: React.FC = () => {
                   </select>
                 </FormField>
                 <FormField label="Cycle Start">
-                  <input 
-                    type="date" 
+                  <input
+                    type="date"
                     value={auditFilterDateStart}
                     onChange={e => setAuditFilterDateStart(e.target.value)}
-                    className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-bold outline-none" 
+                    className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-bold outline-none"
                   />
                 </FormField>
                 <FormField label="Cycle End">
-                  <input 
-                    type="date" 
+                  <input
+                    type="date"
                     value={auditFilterDateEnd}
                     onChange={e => setAuditFilterDateEnd(e.target.value)}
-                    className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-bold outline-none" 
+                    className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-bold outline-none"
                   />
                 </FormField>
               </div>
               <div className="flex gap-4 w-full lg:w-auto">
-                <Button 
-                  size="sm" 
-                  variant="outline" 
+                <Button
+                  size="sm"
+                  variant="outline"
                   className="flex-1 lg:flex-none py-4 rounded-xl"
                   onClick={() => {
                     setAuditFilterUser('');
@@ -457,9 +431,9 @@ const AdminDashboard: React.FC = () => {
                 >
                   Reset
                 </Button>
-                <Button 
-                  size="sm" 
-                  variant="secondary" 
+                <Button
+                  size="sm"
+                  variant="secondary"
                   className="flex-1 lg:flex-none py-4 px-10 rounded-xl shadow-lg shadow-slate-100"
                   onClick={handleExportCSV}
                 >
@@ -467,7 +441,7 @@ const AdminDashboard: React.FC = () => {
                 </Button>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-t border-slate-50 pt-6">
               <span className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 bg-slate-400 rounded-full"></span>
@@ -497,7 +471,7 @@ const AdminDashboard: React.FC = () => {
                       <div className="flex items-center gap-3 mt-4 pt-4 border-t border-slate-50">
                         <div className="w-6 h-6 bg-slate-200 rounded-lg flex items-center justify-center text-[8px] font-black text-slate-500">OP</div>
                         <p className="text-[10px] text-slate-900 uppercase font-black tracking-tight">
-                          {log.userName} 
+                          {log.userName}
                           <span className="mx-2 text-slate-200">|</span>
                           <span className="text-slate-400 font-mono text-[9px]">{log.userId}</span>
                         </p>
@@ -506,9 +480,9 @@ const AdminDashboard: React.FC = () => {
                   </div>
                 ))
               ) : (
-                <EmptyState 
-                  title="No Matching Logs" 
-                  description="Adjust your governance filters to locate specific node interaction records." 
+                <EmptyState
+                  title="No Matching Logs"
+                  description="Adjust your governance filters to locate specific node interaction records."
                 />
               )}
             </div>
@@ -526,7 +500,7 @@ const AdminDashboard: React.FC = () => {
                 <h2 className="text-3xl font-black uppercase tracking-tight">Signal: {selectedSos.id}</h2>
               </div>
               <button onClick={() => setSelectedSos(null)} className="p-3 hover:bg-slate-100 rounded-2xl transition-colors">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth="3"/></svg>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth="3" /></svg>
               </button>
             </div>
             <SosTimeline currentStatus={selectedSos.status} />
@@ -534,12 +508,12 @@ const AdminDashboard: React.FC = () => {
               <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Logistics Metadata</h4>
               <div className="grid grid-cols-2 gap-8">
                 <div>
-                   <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Grid Origin</p>
-                   <p className="text-xs font-bold uppercase">{selectedSos.hospitalName}</p>
+                  <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Grid Origin</p>
+                  <p className="text-xs font-bold uppercase">{selectedSos.hospitalName}</p>
                 </div>
                 <div>
-                   <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Requirement</p>
-                   <p className="text-xs font-bold uppercase">{selectedSos.units} Units of {selectedSos.bloodType}</p>
+                  <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Requirement</p>
+                  <p className="text-xs font-bold uppercase">{selectedSos.units} Units of {selectedSos.bloodType}</p>
                 </div>
               </div>
             </div>
@@ -550,67 +524,67 @@ const AdminDashboard: React.FC = () => {
       {/* Donor History Modal */}
       {selectedDonorHistory && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 backdrop-blur-md bg-slate-900/40 animate-in fade-in duration-300">
-           <div className="bg-white w-full max-w-xl rounded-[3rem] p-12 shadow-2xl space-y-10 animate-in zoom-in-95 duration-300 max-h-[85vh] overflow-y-auto custom-scrollbar">
-              <div className="flex justify-between items-start border-b border-slate-100 pb-8">
-                <div className="flex items-center gap-5">
-                   <div className="w-16 h-16 bg-slate-950 text-white rounded-3xl flex items-center justify-center text-2xl font-black">{selectedDonorHistory.bloodType}</div>
-                   <div>
-                     <h2 className="text-2xl font-black uppercase tracking-tight text-slate-900">{selectedDonorHistory.name}</h2>
-                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Registry Node: {selectedDonorHistory.id}</p>
-                   </div>
+          <div className="bg-white w-full max-w-xl rounded-[3rem] p-12 shadow-2xl space-y-10 animate-in zoom-in-95 duration-300 max-h-[85vh] overflow-y-auto custom-scrollbar">
+            <div className="flex justify-between items-start border-b border-slate-100 pb-8">
+              <div className="flex items-center gap-5">
+                <div className="w-16 h-16 bg-slate-950 text-white rounded-3xl flex items-center justify-center text-2xl font-black">{selectedDonorHistory.bloodType}</div>
+                <div>
+                  <h2 className="text-2xl font-black uppercase tracking-tight text-slate-900">{selectedDonorHistory.name}</h2>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Registry Node: {selectedDonorHistory.id}</p>
                 </div>
-                <button onClick={() => setSelectedDonorHistory(null)} className="p-3 hover:bg-slate-100 rounded-2xl transition-colors">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth="3"/></svg>
-                </button>
+              </div>
+              <button onClick={() => setSelectedDonorHistory(null)} className="p-3 hover:bg-slate-100 rounded-2xl transition-colors">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth="3" /></svg>
+              </button>
+            </div>
+
+            <div className="space-y-8">
+              <div className="grid grid-cols-2 gap-6">
+                <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Contact Linked</p>
+                  <p className="text-xs font-bold text-slate-900 uppercase">{selectedDonorHistory.phone}</p>
+                  <p className="text-[10px] font-medium text-slate-500 mt-1 lowercase">{selectedDonorHistory.email}</p>
+                </div>
+                <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Grid Anchor</p>
+                  <p className="text-xs font-bold text-slate-900 uppercase">{selectedDonorHistory.registeredBy}</p>
+                </div>
               </div>
 
-              <div className="space-y-8">
-                 <div className="grid grid-cols-2 gap-6">
-                    <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
-                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Contact Linked</p>
-                       <p className="text-xs font-bold text-slate-900 uppercase">{selectedDonorHistory.phone}</p>
-                       <p className="text-[10px] font-medium text-slate-500 mt-1 lowercase">{selectedDonorHistory.email}</p>
+              <div className="space-y-4">
+                <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.25em]">Protocol Interaction History</h4>
+                <div className="space-y-3">
+                  {selectedDonorHistory.history.map((h: any, idx: number) => (
+                    <div key={idx} className="flex gap-4 p-5 bg-white border border-slate-100 rounded-2xl hover:border-slate-300 transition-colors">
+                      <div className="w-1.5 h-1.5 bg-rose-600 rounded-full mt-1.5 flex-shrink-0"></div>
+                      <div>
+                        <div className="flex items-center gap-3 mb-1">
+                          <p className="text-[10px] font-black text-slate-950 uppercase">{h.action.replace('_', ' ')}</p>
+                          <span className="text-[9px] font-mono text-slate-400">{h.date}</span>
+                        </div>
+                        <p className="text-[11px] font-medium text-slate-500 leading-relaxed uppercase tracking-tight">{h.details}</p>
+                      </div>
                     </div>
-                    <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
-                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Grid Anchor</p>
-                       <p className="text-xs font-bold text-slate-900 uppercase">{selectedDonorHistory.registeredBy}</p>
-                    </div>
-                 </div>
-
-                 <div className="space-y-4">
-                    <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.25em]">Protocol Interaction History</h4>
-                    <div className="space-y-3">
-                       {selectedDonorHistory.history.map((h: any, idx: number) => (
-                         <div key={idx} className="flex gap-4 p-5 bg-white border border-slate-100 rounded-2xl hover:border-slate-300 transition-colors">
-                            <div className="w-1.5 h-1.5 bg-rose-600 rounded-full mt-1.5 flex-shrink-0"></div>
-                            <div>
-                               <div className="flex items-center gap-3 mb-1">
-                                  <p className="text-[10px] font-black text-slate-950 uppercase">{h.action.replace('_', ' ')}</p>
-                                  <span className="text-[9px] font-mono text-slate-400">{h.date}</span>
-                               </div>
-                               <p className="text-[11px] font-medium text-slate-500 leading-relaxed uppercase tracking-tight">{h.details}</p>
-                            </div>
-                         </div>
-                       ))}
-                    </div>
-                 </div>
+                  ))}
+                </div>
               </div>
-              <div className="pt-6 border-t border-slate-50 flex gap-4">
-                 <Button 
-                   className="flex-1 rounded-2xl py-4 text-[10px] tracking-widest" 
-                   variant="outline"
-                   onClick={() => handleDonorStatus(selectedDonorHistory.id, EligibilityStatus.DEFERRED)}
-                 >
-                   Defer Node
-                 </Button>
-                 <Button 
-                   className="flex-1 rounded-2xl py-4 text-[10px] tracking-widest" 
-                   onClick={() => setSelectedDonorHistory(null)}
-                 >
-                   Close Profile
-                 </Button>
-              </div>
-           </div>
+            </div>
+            <div className="pt-6 border-t border-slate-50 flex gap-4">
+              <Button
+                className="flex-1 rounded-2xl py-4 text-[10px] tracking-widest"
+                variant="outline"
+                onClick={() => handleDonorStatus(selectedDonorHistory.id, EligibilityStatus.DEFERRED)}
+              >
+                Defer Node
+              </Button>
+              <Button
+                className="flex-1 rounded-2xl py-4 text-[10px] tracking-widest"
+                onClick={() => setSelectedDonorHistory(null)}
+              >
+                Close Profile
+              </Button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -621,23 +595,23 @@ const AdminDashboard: React.FC = () => {
             <div className="flex justify-between items-start">
               <h2 className="text-2xl font-black uppercase tracking-tight">Node Audit: {selectedOrg.name}</h2>
               <button onClick={() => setSelectedOrg(null)} className="p-2 hover:bg-slate-100 rounded-xl">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth="2.5"/></svg>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth="2.5" /></svg>
               </button>
             </div>
             <div className="space-y-8">
               <div className="p-8 bg-slate-50 border border-slate-200 rounded-[2rem] flex items-center justify-between group">
                 <div>
-                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Certification Asset</p>
-                   <p className="text-xs font-bold uppercase">License_Verification.pdf</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Certification Asset</p>
+                  <p className="text-xs font-bold uppercase">License_Verification.pdf</p>
                 </div>
                 <button className="text-[10px] font-black uppercase text-blue-600 hover:text-blue-800 underline underline-offset-4 decoration-2">Open Doc</button>
               </div>
               <FormField label="Administrative Remarks">
-                <textarea 
-                  value={adminRemark} 
-                  onChange={e => setAdminRemark(e.target.value)} 
-                  className="w-full p-5 bg-slate-50 border-2 border-transparent rounded-[1.5rem] focus:bg-white focus:border-slate-900 focus:outline-none transition-all text-sm font-bold placeholder:text-slate-300" 
-                  rows={3} 
+                <textarea
+                  value={adminRemark}
+                  onChange={e => setAdminRemark(e.target.value)}
+                  className="w-full p-5 bg-slate-50 border-2 border-transparent rounded-[1.5rem] focus:bg-white focus:border-slate-900 focus:outline-none transition-all text-sm font-bold placeholder:text-slate-300"
+                  rows={3}
                   placeholder="Justification for approval/rejection..."
                 />
               </FormField>

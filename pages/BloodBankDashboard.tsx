@@ -4,7 +4,8 @@ import { useLocation } from 'react-router-dom';
 import { useRealtimeSosList } from '../hooks/useRealtimeSos';
 import { useUpdateSosStatus } from '../hooks/useSos';
 import { useBloodInventory, useUpdateInventory } from '../hooks/useInventory';
-import { SOSStatus, BloodInventory, BloodType, SOSRequest, DeliveryMethod, EligibilityStatus } from '../types';
+import { useAdminDonors, useUpdateDonorStatus, useRegisterDonor } from '../hooks/useAdmin';
+import { SOSStatus, BloodType, SOSRequest, DeliveryMethod, EligibilityStatus } from '../types';
 import Button from '../components/ui/Button';
 import StatusBadge from '../components/ui/StatusBadge';
 import FormField from '../components/ui/FormField';
@@ -29,15 +30,13 @@ const BloodBankDashboard: React.FC = () => {
 
   const { data: requests, isLoading: requestsLoading } = useRealtimeSosList();
   const { data: inventory, isLoading: invLoading } = useBloodInventory();
+  const { data: donors, isLoading: donorsLoading } = useAdminDonors();
   const updateStatus = useUpdateSosStatus();
   const updateInventory = useUpdateInventory();
+  const updateDonorStatus = useUpdateDonorStatus();
+  const registerDonor = useRegisterDonor();
 
-  // Donor state mock
-  const [donors, setDonors] = useState<any[]>([
-    { id: 'D-991', name: 'Rahul Khanna', bloodType: 'O-', status: EligibilityStatus.ELIGIBLE, history: '3 Donations' },
-    { id: 'D-992', name: 'Sara Ali', bloodType: 'A+', status: EligibilityStatus.PENDING_VERIFICATION, history: '0 Donations' }
-  ]);
-  const [isRegisteringDonor, setIsRegisteringDonor] = useState(false);
+  // Local state UI transitions
   const [donorName, setDonorName] = useState('');
   const [donorGroup, setDonorGroup] = useState<BloodType | ''>('');
 
@@ -57,24 +56,28 @@ const BloodBankDashboard: React.FC = () => {
   const handleDonorRegister = (e: React.FormEvent) => {
     e.preventDefault();
     if (!donorName || !donorGroup) return;
-    const newD = { id: `D-${Math.floor(1000+Math.random()*9000)}`, name: donorName, bloodType: donorGroup, status: EligibilityStatus.PENDING_VERIFICATION, history: 'New Registry' };
-    setDonors([newD, ...donors]);
-    setIsRegisteringDonor(false);
-    setDonorName('');
-    setDonorGroup('');
-    showToast('Donor registered in local node.', 'success');
+    registerDonor.mutate({ name: donorName, bloodType: donorGroup }, {
+      onSuccess: () => {
+        setDonorName('');
+        setDonorGroup('');
+        showToast('Donor registered in Global Registry.', 'success');
+      }
+    });
   };
 
   const handleEligibilityUpdate = (id: string, status: EligibilityStatus) => {
-    setDonors(prev => prev.map(d => d.id === id ? { ...d, status } : d));
-    showToast('Eligibility updated and synchronized.', 'info');
+    updateDonorStatus.mutate({ id, status }, {
+      onSuccess: () => {
+        showToast('Eligibility updated and synchronized.', 'info');
+      }
+    });
   };
 
   const handleContactDonor = (name: string) => {
     showToast(`Initializing secure communication terminal for ${name}...`, 'info');
   };
 
-  if (requestsLoading || invLoading) return <div className="p-10"><DashboardSkeleton /></div>;
+  if (requestsLoading || invLoading || donorsLoading) return <div className="p-10"><DashboardSkeleton /></div>;
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-20">
@@ -87,22 +90,22 @@ const BloodBankDashboard: React.FC = () => {
 
       {activeView === 'INVENTORY' && (
         <div className="space-y-10">
-           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {inventory?.map(i => (
-                <div key={i.type} className={`bg-white p-8 rounded-[2rem] border-2 shadow-sm transition-all hover:scale-[1.02] ${i.units < 10 ? 'border-rose-100 bg-rose-50/10' : 'border-slate-50'}`}>
-                  <div className="flex justify-between items-center mb-6">
-                    <span className={`text-2xl font-black ${i.units < 10 ? 'text-rose-600' : 'text-slate-900'}`}>{i.type}</span>
-                    {i.units < 10 && <StatusBadge status="LOW STOCK" />}
-                  </div>
-                  <p className="text-5xl font-black text-slate-950 tracking-tighter leading-none">{i.units}<span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Units</span></p>
-                  <button onClick={() => updateInventory.mutate({ type: i.type, units: i.units + 5 })} className="mt-8 text-[10px] font-black uppercase text-blue-600 hover:text-blue-800 tracking-widest">+ Emergency Batch</button>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {inventory?.map(i => (
+              <div key={i.type} className={`bg-white p-8 rounded-[2rem] border-2 shadow-sm transition-all hover:scale-[1.02] ${i.units < 10 ? 'border-rose-100 bg-rose-50/10' : 'border-slate-50'}`}>
+                <div className="flex justify-between items-center mb-6">
+                  <span className={`text-2xl font-black ${i.units < 10 ? 'text-rose-600' : 'text-slate-900'}`}>{i.type}</span>
+                  {i.units < 10 && <StatusBadge status="LOW STOCK" />}
                 </div>
-              ))}
-           </div>
-           <InventoryTable 
-             onEdit={item => updateInventory.mutate({ type: item.type, units: item.units + 1 })} 
-             onDelete={(item) => showToast(`Purging node data for ${item.type}...`, 'info')} 
-           />
+                <p className="text-5xl font-black text-slate-950 tracking-tighter leading-none">{i.units}<span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Units</span></p>
+                <button onClick={() => updateInventory.mutate({ type: i.type, units: i.units + 5 })} className="mt-8 text-[10px] font-black uppercase text-blue-600 hover:text-blue-800 tracking-widest">+ Emergency Batch</button>
+              </div>
+            ))}
+          </div>
+          <InventoryTable
+            onEdit={item => updateInventory.mutate({ type: item.type, units: item.units + 1 })}
+            onDelete={(item) => showToast(`Purging node data for ${item.type}...`, 'info')}
+          />
         </div>
       )}
 
@@ -124,10 +127,10 @@ const BloodBankDashboard: React.FC = () => {
                   <td className="px-10 py-8">
                     <p className="text-sm font-black text-slate-900">{req.bloodType} • {req.units} Units</p>
                     <div className="flex gap-4 mt-2">
-                       {req.noteUrl && (
-                         <a href={req.noteUrl} target="_blank" rel="noopener noreferrer" className="text-[9px] font-black text-blue-600 uppercase underline underline-offset-2">View Doctor Note</a>
-                       )}
-                       <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{req.urgency || 'Standard'}</span>
+                      {req.noteUrl && (
+                        <a href={req.noteUrl} target="_blank" rel="noopener noreferrer" className="text-[9px] font-black text-blue-600 uppercase underline underline-offset-2">View Doctor Note</a>
+                      )}
+                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{req.urgency || 'Standard'}</span>
                     </div>
                   </td>
                   <td className="px-10 py-8 text-[11px] font-bold uppercase text-slate-500 tracking-tight">{req.hospitalName}</td>
@@ -153,84 +156,84 @@ const BloodBankDashboard: React.FC = () => {
 
       {activeView === 'DONORS' && (
         <div className="grid lg:grid-cols-3 gap-10">
-           <div className="lg:col-span-2 bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
-             <table className="w-full text-left">
-               <thead className="bg-slate-50 border-b border-slate-200">
-                 <tr>
-                   <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-500">Onboarded Donor</th>
-                   <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-500">Group</th>
-                   <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-500">Eligibility</th>
-                   <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-500 text-right">Action</th>
-                 </tr>
-               </thead>
-               <tbody className="divide-y divide-slate-100">
-                 {donors.map(d => (
-                   <tr key={d.id} className="hover:bg-slate-50 transition-colors">
-                     <td className="px-10 py-8">
-                        <p className="text-sm font-bold text-slate-900 uppercase tracking-tight">{d.name}</p>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">{d.history}</p>
-                     </td>
-                     <td className="px-10 py-8 text-xs font-black">{d.bloodType}</td>
-                     <td className="px-10 py-8"><StatusBadge status={d.status} /></td>
-                     <td className="px-10 py-8 text-right space-x-3">
-                       <button onClick={() => handleEligibilityUpdate(d.id, EligibilityStatus.ELIGIBLE)} className="text-[10px] font-black text-blue-600 uppercase hover:underline">Verify</button>
-                       <button onClick={() => handleContactDonor(d.name)} className="text-[10px] font-black text-slate-400 uppercase hover:text-slate-900 transition-colors">Contact</button>
-                     </td>
-                   </tr>
-                 ))}
-               </tbody>
-             </table>
-           </div>
-           <div className="bg-white p-10 rounded-[2.5rem] border border-slate-200 shadow-sm h-fit space-y-10">
-              <div className="space-y-2">
-                <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Node Onboarding</h3>
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Register citizen for local grid broadcasts</p>
-              </div>
-              <form onSubmit={handleDonorRegister} className="space-y-8">
-                 <FormField label="Full Legal Name" required>
-                   <input value={donorName} onChange={e => setDonorName(e.target.value)} placeholder="Legal Name..." className="w-full p-4 bg-slate-50 border-2 border-transparent rounded-2xl text-sm font-bold focus:bg-white focus:border-slate-900 focus:outline-none transition-all" />
-                 </FormField>
-                 <FormField label="Biological Group" required>
-                   <select value={donorGroup} onChange={e => setDonorGroup(e.target.value as BloodType)} className="w-full p-4 bg-slate-50 border-2 border-transparent rounded-2xl text-xs font-bold appearance-none cursor-pointer">
-                     <option value="">-- SELECT --</option>
-                     {['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'].map(t => <option key={t} value={t}>{t}</option>)}
-                   </select>
-                 </FormField>
-                 <Button type="submit" className="w-full py-5 rounded-2xl shadow-xl shadow-slate-100">Enroll Donor</Button>
-              </form>
-           </div>
+          <div className="lg:col-span-2 bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
+            <table className="w-full text-left">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-500">Onboarded Donor</th>
+                  <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-500">Group</th>
+                  <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-500">Eligibility</th>
+                  <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-500 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {donors?.map((d: any) => (
+                  <tr key={d.id} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-10 py-8">
+                      <p className="text-sm font-bold text-slate-900 uppercase tracking-tight">{d.name}</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">{d.history}</p>
+                    </td>
+                    <td className="px-10 py-8 text-xs font-black">{d.bloodType}</td>
+                    <td className="px-10 py-8"><StatusBadge status={d.status} /></td>
+                    <td className="px-10 py-8 text-right space-x-3">
+                      <button onClick={() => handleEligibilityUpdate(d.id, EligibilityStatus.ELIGIBLE)} className="text-[10px] font-black text-blue-600 uppercase hover:underline">Verify</button>
+                      <button onClick={() => handleContactDonor(d.name)} className="text-[10px] font-black text-slate-400 uppercase hover:text-slate-900 transition-colors">Contact</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="bg-white p-10 rounded-[2.5rem] border border-slate-200 shadow-sm h-fit space-y-10">
+            <div className="space-y-2">
+              <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Node Onboarding</h3>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Register citizen for local grid broadcasts</p>
+            </div>
+            <form onSubmit={handleDonorRegister} className="space-y-8">
+              <FormField label="Full Legal Name" required>
+                <input value={donorName} onChange={e => setDonorName(e.target.value)} placeholder="Legal Name..." className="w-full p-4 bg-slate-50 border-2 border-transparent rounded-2xl text-sm font-bold focus:bg-white focus:border-slate-900 focus:outline-none transition-all" />
+              </FormField>
+              <FormField label="Biological Group" required>
+                <select value={donorGroup} onChange={e => setDonorGroup(e.target.value as BloodType)} className="w-full p-4 bg-slate-50 border-2 border-transparent rounded-2xl text-xs font-bold appearance-none cursor-pointer">
+                  <option value="">-- SELECT --</option>
+                  {['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'].map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </FormField>
+              <Button type="submit" className="w-full py-5 rounded-2xl shadow-xl shadow-slate-100">Enroll Donor</Button>
+            </form>
+          </div>
         </div>
       )}
 
       {activeView === 'DISPATCH' && (
         <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
-           <table className="w-full text-left">
-             <thead className="bg-slate-50 border-b border-slate-200">
-               <tr>
-                 <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-500">SOS Trace</th>
-                 <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-500">Destination</th>
-                 <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-500">Payload</th>
-                 <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-500 text-right">Carrier Method</th>
-               </tr>
-             </thead>
-             <tbody className="divide-y divide-slate-100">
-               {requests?.filter(r => r.status === SOSStatus.DISPATCHED || r.status === SOSStatus.FULFILLED).map(req => (
-                 <tr key={req.id} className="hover:bg-slate-50">
-                   <td className="px-10 py-8 text-xs font-mono font-bold">{req.id}</td>
-                   <td className="px-10 py-8 text-xs font-black uppercase text-slate-900 tracking-tight">{req.hospitalName}</td>
-                   <td className="px-10 py-8 text-xs font-bold uppercase text-slate-500">{req.units} Units {req.bloodType}</td>
-                   <td className="px-10 py-8 text-right">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-50 px-4 py-2 rounded-full border border-slate-100">
-                        {req.deliveryMethod ? req.deliveryMethod.replace('_', ' ') : 'Grid Transport'}
-                      </span>
-                   </td>
-                 </tr>
-               ))}
-               {requests?.filter(r => r.status === SOSStatus.DISPATCHED || r.status === SOSStatus.FULFILLED).length === 0 && (
-                 <tr><td colSpan={4} className="p-0"><EmptyState title="No Shipments" description="Dispatch registry is clear. No active couriers on grid." /></td></tr>
-               )}
-             </tbody>
-           </table>
+          <table className="w-full text-left">
+            <thead className="bg-slate-50 border-b border-slate-200">
+              <tr>
+                <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-500">SOS Trace</th>
+                <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-500">Destination</th>
+                <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-500">Payload</th>
+                <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-500 text-right">Carrier Method</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {requests?.filter(r => r.status === SOSStatus.DISPATCHED || r.status === SOSStatus.FULFILLED).map(req => (
+                <tr key={req.id} className="hover:bg-slate-50">
+                  <td className="px-10 py-8 text-xs font-mono font-bold">{req.id}</td>
+                  <td className="px-10 py-8 text-xs font-black uppercase text-slate-900 tracking-tight">{req.hospitalName}</td>
+                  <td className="px-10 py-8 text-xs font-bold uppercase text-slate-500">{req.units} Units {req.bloodType}</td>
+                  <td className="px-10 py-8 text-right">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-50 px-4 py-2 rounded-full border border-slate-100">
+                      {req.deliveryMethod ? req.deliveryMethod.replace('_', ' ') : 'Grid Transport'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+              {requests?.filter(r => r.status === SOSStatus.DISPATCHED || r.status === SOSStatus.FULFILLED).length === 0 && (
+                <tr><td colSpan={4} className="p-0"><EmptyState title="No Shipments" description="Dispatch registry is clear. No active couriers on grid." /></td></tr>
+              )}
+            </tbody>
+          </table>
         </div>
       )}
 
@@ -250,9 +253,9 @@ const BloodBankDashboard: React.FC = () => {
                 </select>
               </FormField>
               <div className="p-6 bg-slate-50 rounded-[1.5rem] border border-slate-100">
-                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-relaxed">
-                   Confirmation initiates cold-chain tracking. Ensure all units are double-verified for compatibility prior to dispatch.
-                 </p>
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-relaxed">
+                  Confirmation initiates cold-chain tracking. Ensure all units are double-verified for compatibility prior to dispatch.
+                </p>
               </div>
               <div className="flex gap-4">
                 <Button variant="outline" className="flex-1 rounded-2xl py-5" onClick={() => setDispatchSos(null)}>Abort</Button>

@@ -13,6 +13,17 @@ export const useSosRequests = () => {
   });
 };
 
+export const useSosDetail = (id: string) => {
+  return useQuery<SOSRequest>({
+    queryKey: ['sos-detail', id],
+    queryFn: async () => {
+      const { data } = await api.get(`/signals/${id}`);
+      return data;
+    },
+    enabled: !!id
+  });
+};
+
 export const useCreateSosRequest = () => {
   const queryClient = useQueryClient();
   return useMutation({

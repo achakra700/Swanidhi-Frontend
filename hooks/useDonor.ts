@@ -1,9 +1,9 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { DonorProfile, EligibilityStatus } from '../types';
+import { DonorProfile } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useEffect } from 'react';
 import { signalRService } from '../services/signalR';
+import api from '../services/api';
 
 export const useDonorProfile = () => {
   const { user } = useAuth();
@@ -12,31 +12,8 @@ export const useDonorProfile = () => {
   const query = useQuery<DonorProfile>({
     queryKey: ['donor-profile', user?.id],
     queryFn: async () => {
-      // Simulation of secure database fetch
-      await new Promise(r => setTimeout(r, 600));
-      
-      const stored = localStorage.getItem(`donor_profile_${user?.id}`);
-      if (stored) return JSON.parse(stored);
-
-      // Default mock profile for demo
-      const mock: DonorProfile = {
-        userId: user?.id || 'D-000',
-        fullName: user?.name || 'Authorized Personnel',
-        email: user?.email || 'personnel@swanidhi.gov.in',
-        phone: '919988776655',
-        age: 28,
-        bloodType: 'B+',
-        eligibility: EligibilityStatus.PENDING_VERIFICATION,
-        verificationProgress: 65,
-        checkpoints: {
-          identity: true,
-          medicalHistory: true,
-          documents: false
-        }
-      };
-      
-      localStorage.setItem(`donor_profile_${user?.id}`, JSON.stringify(mock));
-      return mock;
+      const { data } = await api.get('/api/donors/profile');
+      return data;
     },
     enabled: !!user,
   });
@@ -57,20 +34,52 @@ export const useDonorProfile = () => {
   return query;
 };
 
+export const useDonorRequests = () => {
+  return useQuery<any[]>({
+    queryKey: ['donor-requests'],
+    queryFn: async () => {
+      const { data } = await api.get('/api/donors/requests');
+      return data;
+    },
+  });
+};
+
+export const useAcceptDonation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await api.post(`/api/donors/requests/${id}/accept`);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['donor-requests'] });
+    }
+  });
+};
+
+export const useDeclineDonation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await api.post(`/api/donors/requests/${id}/decline`);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['donor-requests'] });
+    }
+  });
+};
+
 export const useUpdateDonorProfile = () => {
-  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (updates: Partial<DonorProfile>) => {
-      await new Promise(r => setTimeout(r, 1200));
-      const current = JSON.parse(localStorage.getItem(`donor_profile_${user?.id}`) || '{}');
-      const updated = { ...current, ...updates };
-      localStorage.setItem(`donor_profile_${user?.id}`, JSON.stringify(updated));
-      return updated;
+      const { data } = await api.patch('/api/donors/profile', updates);
+      return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['donor-profile', user?.id] });
+    onSuccess: (data: DonorProfile) => {
+      queryClient.setQueryData(['donor-profile', data.userId], data);
     }
   });
 };

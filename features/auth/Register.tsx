@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -9,6 +8,7 @@ import FormField from '../../components/ui/FormField';
 import { UserRole } from '../../types';
 import { useToast } from '../../context/ToastContext';
 import Logo from '../../components/ui/Logo';
+import api from '../../services/api';
 import DonorRegistrationForm from '../../components/forms/DonorRegistrationForm';
 
 const registerSchema = z.object({
@@ -27,7 +27,6 @@ const registerSchema = z.object({
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 const Register: React.FC = () => {
-  const navigate = useNavigate();
   const { showToast } = useToast();
   const [isSuccess, setIsSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState<'ORG' | 'DONOR'>('ORG');
@@ -43,14 +42,31 @@ const Register: React.FC = () => {
   const selectedRole = watch('role');
   const uploadedFile = watch('document');
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: RegisterFormValues) => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 2500));
+      const formData = new FormData();
+      Object.entries(data).forEach(([key, value]) => {
+        if (key === 'document') {
+          formData.append('document', value[0]);
+        } else {
+          formData.append(key, value as string);
+        }
+      });
+
+      await api.post('/api/auth/register', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
       showToast('Registration application submitted to Global Registry.', 'success');
       setIsSuccess(true);
-    } catch (err) {
-      showToast('Electronic transmission failure. Check connectivity.', 'error');
+    } catch (err: any) {
+      showToast(err.response?.data?.message || 'Electronic transmission failure. Check connectivity.', 'error');
     }
+  };
+
+  const handleDonorSuccess = () => {
+    showToast('Emergency Donor Profile synchronized with Global Grid.', 'success');
+    setIsSuccess(true);
   };
 
   if (isSuccess) {
@@ -58,10 +74,10 @@ const Register: React.FC = () => {
       <div className="min-h-screen bg-white flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-700">
         <div className="w-24 h-24 bg-emerald-50 text-emerald-600 rounded-[2.5rem] flex items-center justify-center mb-10 shadow-inner">
           <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
-        
+
         <div className="space-y-4 max-w-xl mb-12">
           <h1 className="text-4xl font-black text-slate-950 uppercase tracking-tighter leading-none">Registry Initialized</h1>
           <p className="text-lg font-medium text-slate-500 uppercase tracking-tight leading-relaxed">
@@ -82,8 +98,8 @@ const Register: React.FC = () => {
         <Link to="/" aria-label="SWANIDHI Home">
           <Logo className="h-7" />
         </Link>
-        <Link 
-          to="/login" 
+        <Link
+          to="/login"
           className="px-6 py-3 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-slate-950 hover:border-slate-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 transition-all shadow-sm"
         >
           Login Instead
@@ -98,19 +114,17 @@ const Register: React.FC = () => {
 
         <div className="flex justify-center">
           <div role="radiogroup" aria-label="Onboarding Type" className="bg-slate-100 p-1.5 rounded-2xl flex gap-1 shadow-inner">
-            <button 
+            <button
               onClick={() => setActiveTab('ORG')}
-              className={`px-10 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
-                activeTab === 'ORG' ? 'bg-white text-slate-950 shadow-md scale-100' : 'text-slate-500 hover:text-slate-600'
-              }`}
+              className={`px-10 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${activeTab === 'ORG' ? 'bg-white text-slate-950 shadow-md scale-100' : 'text-slate-500 hover:text-slate-600'
+                }`}
             >
               Institutional
             </button>
-            <button 
+            <button
               onClick={() => setActiveTab('DONOR')}
-              className={`px-10 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
-                activeTab === 'DONOR' ? 'bg-white text-slate-950 shadow-md scale-100' : 'text-slate-500 hover:text-slate-600'
-              }`}
+              className={`px-10 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${activeTab === 'DONOR' ? 'bg-white text-slate-950 shadow-md scale-100' : 'text-slate-500 hover:text-slate-600'
+                }`}
             >
               Emergency Donor
             </button>
@@ -119,7 +133,7 @@ const Register: React.FC = () => {
 
         {activeTab === 'DONOR' ? (
           <div className="animate-in slide-in-from-bottom-4 duration-500 max-w-2xl mx-auto w-full">
-            <DonorRegistrationForm onSuccess={onSubmit} />
+            <DonorRegistrationForm onSuccess={handleDonorSuccess} />
           </div>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-[3rem] shadow-[0_30px_70px_-20px_rgba(0,0,0,0.1)] border border-slate-100 p-10 md:p-16 space-y-12 animate-in slide-in-from-bottom-4 duration-500">
@@ -129,11 +143,10 @@ const Register: React.FC = () => {
                   key={r}
                   type="button"
                   onClick={() => setValue('role', r)}
-                  className={`px-8 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border-2 ${
-                    selectedRole === r 
-                      ? 'bg-slate-950 text-white border-slate-950' 
-                      : 'bg-white text-slate-400 border-slate-100 hover:border-slate-200'
-                  }`}
+                  className={`px-8 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border-2 ${selectedRole === r
+                    ? 'bg-slate-950 text-white border-slate-950'
+                    : 'bg-white text-slate-400 border-slate-100 hover:border-slate-200'
+                    }`}
                 >
                   {r.replace('_', ' ')} Signup
                 </button>

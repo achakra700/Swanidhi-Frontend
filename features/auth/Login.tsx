@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -21,7 +21,6 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [role, setRole] = useState<UserRole>(UserRole.HOSPITAL);
   const [isAuthorizing, setIsAuthorizing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,17 +32,19 @@ const Login: React.FC = () => {
     setIsAuthorizing(true);
     setError(null);
     try {
-      const response = await api.post('/auth/authorize', { ...data, role });
-      login(response.data.token, response.data.user);
-      
-      const routes = {
+      const response = await api.post('/api/auth/login', data);
+      const { token, user } = response.data;
+      login(token, user);
+
+      const routes: Record<string, string> = {
         [UserRole.ADMIN]: '/admin',
         [UserRole.HOSPITAL]: '/hospital',
         [UserRole.BLOOD_BANK]: '/bloodbank',
         [UserRole.DONOR]: '/donor',
         [UserRole.PATIENT]: '/patient',
       };
-      navigate(routes[role]);
+
+      navigate(routes[user.role] || '/');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Authorization protocol failed. Check credentials.');
     } finally {
@@ -61,14 +62,6 @@ const Login: React.FC = () => {
         </header>
 
         <form onSubmit={handleSubmit(handleLogin)} className="space-y-6">
-          <div className="grid grid-cols-3 gap-2">
-            {[UserRole.HOSPITAL, UserRole.BLOOD_BANK, UserRole.ADMIN, UserRole.DONOR, UserRole.PATIENT].map((r) => (
-              <button key={r} type="button" onClick={() => setRole(r)} className={`px-2 py-3 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all border-2 ${role === r ? 'bg-slate-900 text-white border-slate-900' : 'bg-slate-50 text-slate-400 border-transparent hover:bg-slate-100'}`}>
-                {r.replace('_', ' ')}
-              </button>
-            ))}
-          </div>
-
           <FormField label="Identifier" error={errors.email?.message}>
             <input {...register('email')} type="email" className="w-full px-5 py-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-slate-950 outline-none transition-all font-bold" />
           </FormField>

@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const api = axios.create({
   // Fix: Property 'env' does not exist on type 'ImportMeta'. Using process.env to access the environment variables.
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://api.swanidhi-emergency.gov.in',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://swanidhi-backend-g5f7c2gjfkh8drbt.centralindia-01.azurewebsites.net',
   headers: {
     'Content-Type': 'application/json',
   },
