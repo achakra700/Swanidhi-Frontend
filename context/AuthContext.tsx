@@ -95,6 +95,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (refreshToken) {
       localStorage.setItem('ls_refresh_token', refreshToken);
     }
+    // Inject isRootAdmin flag if role is ADMIN and no org ID
+    if (user.role === UserRole.ADMIN && !user.organizationId) {
+      user.isRootAdmin = true;
+    }
+
     localStorage.setItem('ls_user', JSON.stringify(user));
     localStorage.setItem('ls_role', user.role);
 

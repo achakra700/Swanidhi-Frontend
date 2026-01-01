@@ -49,6 +49,7 @@ export interface User {
   organizationType?: string;
   orgName?: string;
   regId?: string;
+  isRootAdmin?: boolean; // Indicates if the user is a super-admin without organization context
 }
 
 export interface AuthState {
