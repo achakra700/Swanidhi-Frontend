@@ -55,20 +55,21 @@ const App: React.FC = () => {
               <Route path="/compliance" element={<Compliance />} />
               <Route path="/contact" element={<Contact />} />
 
-              {/* Authenticated Routes */}
+              {/* Authenticated Routes with Layout Packaging */}
               <Route element={<ProtectedRoute allowedRoles={Object.values(UserRole)} />}>
                 <Route element={<LayoutShell />}>
-                  {/* Hospital Routes */}
+                  {/* Shared SOS Details - Access restricted by logic inside component */}
+                  <Route path="/sos/:id" element={<SOSDetail />} />
+
+                  {/* Hospital Terminal: Strict Isolation */}
                   <Route element={<ProtectedRoute allowedRoles={[UserRole.HOSPITAL]} />}>
                     <Route path="/hospital" element={<HospitalDashboard />} />
                     <Route path="/hospital/request" element={<HospitalDashboard />} />
                     <Route path="/hospital/sos" element={<HospitalDashboard />} />
+                    <Route path="/hospital/patients" element={<HospitalDashboard />} />
                   </Route>
 
-                  {/* Shared SOS Details */}
-                  <Route path="/sos/:id" element={<SOSDetail />} />
-
-                  {/* Admin Routes */}
+                  {/* Admin Governance: Strict Isolation */}
                   <Route element={<ProtectedRoute allowedRoles={[UserRole.ADMIN]} />}>
                     <Route path="/admin" element={<AdminDashboard />} />
                     <Route path="/admin/orgs" element={<AdminDashboard />} />
@@ -76,21 +77,24 @@ const App: React.FC = () => {
                     <Route path="/admin/sos" element={<AdminDashboard />} />
                     <Route path="/admin/audit" element={<AdminDashboard />} />
                     <Route path="/admin/health" element={<AdminDashboard />} />
+                    <Route path="/admin/override" element={<AdminDashboard />} />
                   </Route>
 
-                  {/* Blood Bank Routes */}
+                  {/* Blood Bank Logistics: Strict Isolation */}
                   <Route element={<ProtectedRoute allowedRoles={[UserRole.BLOOD_BANK]} />}>
                     <Route path="/bloodbank" element={<BloodBankDashboard />} />
                     <Route path="/bloodbank/sos" element={<BloodBankDashboard />} />
+                    <Route path="/bloodbank/inventory" element={<BloodBankDashboard />} />
                     <Route path="/bloodbank/donors" element={<BloodBankDashboard />} />
                     <Route path="/bloodbank/dispatch" element={<BloodBankDashboard />} />
                   </Route>
 
-                  {/* Donor Routes */}
+                  {/* Donor & Patient Terminals: Strict Isolation */}
                   <Route element={<ProtectedRoute allowedRoles={[UserRole.DONOR]} />}>
                     <Route path="/donor" element={<DonorDashboard />} />
                     <Route path="/donor/requests" element={<DonorDashboard />} />
                     <Route path="/donor/history" element={<DonorDashboard />} />
+                    <Route path="/donor/profile" element={<DonorDashboard />} />
                   </Route>
 
                   <Route element={<ProtectedRoute allowedRoles={[UserRole.PATIENT]} />}>

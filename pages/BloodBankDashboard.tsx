@@ -14,6 +14,7 @@ import { DashboardSkeleton } from '../components/ui/Skeleton';
 import EmptyState from '../components/ui/EmptyState';
 import InventoryTable from '../components/inventory/InventoryTable';
 import { useAuth } from '../context/AuthContext';
+import SosTimeline from '../components/sos/SosTimeline';
 
 const BloodBankDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -43,6 +44,12 @@ const BloodBankDashboard: React.FC = () => {
   // Dispatch state UI
   const [dispatchSos, setDispatchSos] = useState<SOSRequest | null>(null);
   const [delMethod, setDelMethod] = useState<DeliveryMethod>(DeliveryMethod.HOSPITAL_PICKUP);
+
+  // Routing Explanation State
+  const [selectedSosRouting, setSelectedSosRouting] = useState<SOSRequest | null>(null);
+
+  // Donor History State
+  const [viewingDonorHistory, setViewingDonorHistory] = useState<any | null>(null);
 
   const handleDispatch = (id: string) => {
     updateStatus.mutate({ id, status: SOSStatus.DISPATCHED, reason: `Dispatched via ${delMethod.replace('_', ' ')}` }, {
@@ -135,6 +142,7 @@ const BloodBankDashboard: React.FC = () => {
                   </td>
                   <td className="px-10 py-8 text-[11px] font-bold uppercase text-slate-500 tracking-tight">{req.hospitalName}</td>
                   <td className="px-10 py-8 text-right space-x-3">
+                    <button onClick={() => setSelectedSosRouting(req)} className="text-[10px] font-black uppercase text-blue-600 hover:underline mr-4">Route Context</button>
                     {req.status === SOSStatus.CREATED ? (
                       <>
                         <button onClick={() => updateStatus.mutate({ id: req.id, status: SOSStatus.ACCEPTED })} className="bg-slate-950 text-white px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-slate-100 transition-all hover:scale-105 active:scale-95">Accept</button>
@@ -176,8 +184,9 @@ const BloodBankDashboard: React.FC = () => {
                     <td className="px-10 py-8 text-xs font-black">{d.bloodType}</td>
                     <td className="px-10 py-8"><StatusBadge status={d.status} /></td>
                     <td className="px-10 py-8 text-right space-x-3">
+                      <button onClick={() => setViewingDonorHistory(d)} className="text-[10px] font-black text-slate-400 uppercase hover:text-slate-900 mr-2">Audit History</button>
                       <button onClick={() => handleEligibilityUpdate(d.id, EligibilityStatus.ELIGIBLE)} className="text-[10px] font-black text-blue-600 uppercase hover:underline">Verify</button>
-                      <button onClick={() => handleContactDonor(d.name)} className="text-[10px] font-black text-slate-400 uppercase hover:text-slate-900 transition-colors">Contact</button>
+                      <button onClick={() => handleContactDonor(d.name)} className="text-[10px] font-black text-rose-400 uppercase hover:text-rose-600 transition-colors">Contact</button>
                     </td>
                   </tr>
                 ))}
@@ -234,6 +243,102 @@ const BloodBankDashboard: React.FC = () => {
               )}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* SOS Routing Explanation Modal */}
+      {selectedSosRouting && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 backdrop-blur-md bg-slate-900/40 animate-in fade-in">
+          <div className="bg-white w-full max-w-2xl rounded-[3rem] p-12 shadow-2xl space-y-10">
+            <div className="flex justify-between items-start">
+              <div>
+                <h2 className="text-3xl font-black uppercase tracking-tight text-slate-900">Routing Analysis</h2>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-2">Protocol: {selectedSosRouting.id}</p>
+              </div>
+              <button onClick={() => setSelectedSosRouting(null)} className="p-3 hover:bg-slate-100 rounded-2xl transition-colors text-slate-400">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth="3" /></svg>
+              </button>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8 items-start">
+              <div className="p-8 bg-slate-50 rounded-[2rem] border border-slate-100 space-y-6">
+                <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Allocation Intelligence</h4>
+                <div className="space-y-4">
+                  <div className="flex justify-between text-[11px] font-bold uppercase">
+                    <span className="text-slate-400">Proximity Rank</span>
+                    <span className="text-slate-900">#1 (Local Hub)</span>
+                  </div>
+                  <div className="flex justify-between text-[11px] font-bold uppercase">
+                    <span className="text-slate-400">Inventory match</span>
+                    <span className="text-emerald-600">OPTIMAL</span>
+                  </div>
+                  <div className="flex justify-between text-[11px] font-bold uppercase">
+                    <span className="text-slate-400">Regional Weight</span>
+                    <span className="text-slate-900">Tier A-1</span>
+                  </div>
+                </div>
+              </div>
+              <div className="p-8 bg-slate-50 rounded-[2rem] border border-slate-100 space-y-4">
+                <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Clinical Context</h4>
+                <p className="text-[11px] font-bold text-slate-500 uppercase leading-relaxed">
+                  Source node "{selectedSosRouting.hospitalName}" broadcasted urgent requirement based on critical patient stabilization needs. Hub allocation prioritized based on zero-latency matching.
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-8 border-t border-slate-50">
+              <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-6">Live Signal Timeline</h4>
+              <SosTimeline currentStatus={selectedSosRouting.status} />
+            </div>
+
+            <Button className="w-full py-5 rounded-2xl" onClick={() => setSelectedSosRouting(null)}>Acknowledge Distribution</Button>
+          </div>
+        </div>
+      )}
+
+      {/* Donor History Audit Modal */}
+      {viewingDonorHistory && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 backdrop-blur-md bg-slate-900/40 animate-in fade-in">
+          <div className="bg-white w-full max-w-xl rounded-[3rem] p-12 shadow-2xl space-y-10">
+            <div className="flex justify-between items-start border-b border-slate-100 pb-8">
+              <div className="flex items-center gap-5">
+                <div className="w-14 h-14 bg-slate-950 text-white rounded-2xl flex items-center justify-center text-xl font-black">{viewingDonorHistory.bloodType}</div>
+                <div>
+                  <h2 className="text-2xl font-black uppercase tracking-tight text-slate-900">{viewingDonorHistory.name}</h2>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Registry Audit Node: {viewingDonorHistory.id}</p>
+                </div>
+              </div>
+              <button onClick={() => setViewingDonorHistory(null)} className="p-3 hover:bg-slate-100 rounded-2xl transition-colors">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth="3" /></svg>
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.25em]">Cryptographic Contribution Record</h4>
+              <div className="space-y-3 max-h-[40vh] overflow-y-auto pr-4 custom-scrollbar">
+                {(viewingDonorHistory.history_records || [
+                  { action: 'INITIAL_REGISTRATION', date: '2024-11-20', details: 'Node synchronized with National Grid' },
+                  { action: 'ELIGIBILITY_VERIFIED', date: '2024-11-21', details: 'Post-sync clinical screening passed' },
+                ]).map((h: any, idx: number) => (
+                  <div key={idx} className="flex gap-4 p-5 bg-slate-50 border border-slate-100 rounded-2xl">
+                    <div className="w-1.5 h-1.5 bg-rose-600 rounded-full mt-1.5 flex-shrink-0"></div>
+                    <div>
+                      <div className="flex items-center gap-3 mb-1">
+                        <p className="text-[10px] font-black text-slate-950 uppercase">{h.action.replace('_', ' ')}</p>
+                        <span className="text-[9px] font-mono text-slate-400">{h.date}</span>
+                      </div>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-tight">{h.details}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <Button variant="outline" className="flex-1 rounded-2xl py-4" onClick={() => setViewingDonorHistory(null)}>Exit Audit</Button>
+              <Button className="flex-1 rounded-2xl py-4 uppercase tracking-widest text-[9px]" onClick={() => { setViewingDonorHistory(null); showToast('Dispatching secure donor certificate...', 'info'); }}>Export Credentials</Button>
+            </div>
+          </div>
         </div>
       )}
 

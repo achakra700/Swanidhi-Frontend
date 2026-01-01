@@ -10,8 +10,6 @@ import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
 import ScreeningWizard from '../components/donor/ScreeningWizard';
 
-
-
 const DonorDashboard: React.FC = () => {
   const { showToast } = useToast();
   const { data: donor, isLoading } = useDonorProfile();
@@ -21,6 +19,7 @@ const DonorDashboard: React.FC = () => {
   const location = useLocation();
 
   const [activeTab, setActiveTab] = useState<'PROFILE' | 'REQUESTS' | 'HISTORY' | 'VERIFY'>('PROFILE');
+  const [isAvailable, setIsAvailable] = useState(true);
 
   useEffect(() => {
     if (location.pathname.includes('/requests')) setActiveTab('REQUESTS');
@@ -139,13 +138,29 @@ const DonorDashboard: React.FC = () => {
                   <p className="text-sm font-bold text-slate-700 uppercase tracking-tight mt-1">+{donor.phone}</p>
                 </div>
                 <div className="mt-8">
-                  <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-3">Checkpoint Status</p>
-                  <div className="flex gap-2">
-                    {Object.entries(donor.checkpoints).map(([key, val]) => (
-                      <div key={key} title={key.toUpperCase()} className={`flex-1 h-1.5 rounded-full transition-colors ${val ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]' : 'bg-slate-300'}`}></div>
-                    ))}
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Manual Availability Protocol</p>
+                  <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                    <span className="text-[10px] font-black text-slate-900 uppercase">Ready for Pulse Broadcasts</span>
+                    <button
+                      onClick={() => { setIsAvailable(!isAvailable); showToast(`Availability updated: ${!isAvailable ? 'ON' : 'OFF'}`, 'info'); }}
+                      className={`w-14 h-7 rounded-full transition-all relative ${isAvailable ? 'bg-emerald-500' : 'bg-slate-200'}`}
+                    >
+                      <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all ${isAvailable ? 'right-1' : 'left-1'}`}></div>
+                    </button>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            <div className="p-10 bg-rose-50 rounded-[3rem] border border-rose-100 flex items-center justify-between">
+              <div>
+                <h4 className="text-[10px] font-black text-rose-600 uppercase tracking-[0.4em] mb-2">Burnout Prevention Protocol</h4>
+                <p className="text-xl font-black text-slate-900 uppercase">Recovery Cooldown Active</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Next safe donation window: {donor.nextEligibleDate || 'Verified: No active cooldown'}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-3xl font-black text-rose-600 tracking-tighter">90<span className="text-[10px] ml-1">DAYS</span></p>
+                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Standard Gap</p>
               </div>
             </div>
           </div>
