@@ -7,8 +7,9 @@ export const useSosRequests = () => {
   return useQuery<SOSRequest[]>({
     queryKey: ['sos-requests'],
     queryFn: async () => {
-      const { data } = await api.get('/signals/active');
-      return data;
+      // Backend returns { success: true, data: { sosRequests: [], total: 0 } }
+      const { data: response } = await api.get('/api/sos/list/all');
+      return response.data?.sosRequests || [];
     }
   });
 };
@@ -17,8 +18,8 @@ export const useSosDetail = (id: string) => {
   return useQuery<SOSRequest>({
     queryKey: ['sos-detail', id],
     queryFn: async () => {
-      const { data } = await api.get(`/signals/${id}`);
-      return data;
+      const { data: response } = await api.get(`/api/sos/${id}`);
+      return response.data;
     },
     enabled: !!id
   });
@@ -28,17 +29,8 @@ export const useCreateSosRequest = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (payload: any) => {
-      const formData = new FormData();
-      Object.keys(payload).forEach(key => {
-        if (key === 'document') {
-          formData.append('clinicalNote', payload[key][0]);
-        } else {
-          formData.append(key, payload[key]);
-        }
-      });
-      const { data } = await api.post('/signals/initiate', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      // Frontend payload might need mapping to backend SOSRequestCreate
+      const { data } = await api.post('/api/sos', payload);
       return data;
     },
     onSuccess: () => {
@@ -51,7 +43,9 @@ export const useUpdateSosStatus = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, status, reason }: { id: string; status: SOSStatus; reason?: string }) => {
-      const { data } = await api.patch(`/signals/${id}/status`, { status, reason });
+      // Backend has specific endpoints for accept/reject
+      const endpoint = status === 'ACCEPTED' ? 'accept' : 'reject';
+      const { data } = await api.post(`/api/sos/${id}/${endpoint}`, { reason });
       return data;
     },
     onSuccess: () => {
