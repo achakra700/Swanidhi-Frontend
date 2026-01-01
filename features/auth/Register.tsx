@@ -11,11 +11,9 @@ import Logo from '../../components/ui/Logo';
 import api from '../../services/api';
 
 const registerSchema = z.object({
-  role: z.enum([UserRole.HOSPITAL, UserRole.BLOOD_BANK] as const, {
-    message: "Institutional category is required"
-  }),
+  role: z.enum([UserRole.HOSPITAL, UserRole.BLOOD_BANK] as const),
   orgName: z.string().min(5, 'Full Registered Name required'),
-  regNumber: z.string().min(6, 'Official License ID required'),
+  regNumber: z.string().min(5, 'Official License ID required'),
   contactPerson: z.string().min(3, 'Authorized Representative name required'),
   email: z.string().email('Official institutional email required'),
   location: z.string().min(10, 'Full Facility Address required'),
@@ -28,9 +26,10 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 const Register: React.FC = () => {
   const { showToast } = useToast();
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting, isValid } } = useForm<RegisterFormValues>({
+  const { register, handleSubmit, watch, setValue, trigger, formState: { errors, isSubmitting } } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       role: UserRole.HOSPITAL
@@ -40,6 +39,17 @@ const Register: React.FC = () => {
 
   const selectedRole = watch('role');
   const uploadedFile = watch('document');
+
+  const goToNext = async () => {
+    let fieldsToValidate: (keyof RegisterFormValues)[] = [];
+    if (currentStep === 1) fieldsToValidate = ['role'];
+    if (currentStep === 2) fieldsToValidate = ['orgName', 'regNumber', 'contactPerson', 'email', 'location'];
+
+    const isStepValid = await trigger(fieldsToValidate);
+    if (isStepValid) {
+      setCurrentStep(prev => (prev + 1) as any);
+    }
+  };
 
   const onSubmit = async (data: RegisterFormValues) => {
     try {
@@ -66,131 +76,161 @@ const Register: React.FC = () => {
   if (isSuccess) {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-700">
-        <div className="w-24 h-24 bg-emerald-50 text-emerald-600 rounded-[2.5rem] flex items-center justify-center mb-10 shadow-inner">
-          <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M5 13l4 4L19 7" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+        <div className="w-24 h-24 bg-slate-900 border-4 border-emerald-500/20 text-emerald-500 rounded-3xl flex items-center justify-center mb-10 shadow-2xl">
+          <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
         </div>
-
-        <div className="space-y-4 max-w-xl mb-12">
-          <h1 className="text-4xl font-black text-slate-950 uppercase tracking-tighter leading-none">Application Registered</h1>
-          <p className="text-lg font-medium text-slate-500 uppercase tracking-tight leading-relaxed">
-            Your registration is now being reviewed by the Federal Administration.
-            Once verified, an encrypted authorization key will be dispatched to your registered credentials.
+        <div className="space-y-4 max-w-lg">
+          <h1 className="text-4xl font-black text-slate-900 uppercase tracking-tight">Application Filed</h1>
+          <p className="text-slate-500 font-medium text-lg leading-relaxed">
+            Your node registration is now undergoing national audit. Verification typically completes within 24-48 hours.
           </p>
-          <div className="p-4 bg-slate-100 border-l-4 border-slate-900 inline-block text-[10px] font-black uppercase tracking-widest text-slate-600">
-            Subject to security audit and verification.
+          <div className="pt-8">
+            <Link to="/login">
+              <Button className="px-12 py-5 rounded-2xl bg-slate-950 text-white font-black uppercase tracking-widest text-xs">Return to Terminal</Button>
+            </Link>
           </div>
         </div>
-
-        <Link to="/login">
-          <Button variant="primary" className="px-12 py-5 rounded-2xl shadow-2xl">Return to Terminal</Button>
-        </Link>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] py-16 px-6 flex flex-col items-center relative overflow-x-hidden">
-      {/* Immersive Background Elements */}
-      <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none" aria-hidden="true">
-        <svg width="100%" height="100%"><pattern id="grid-reg" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="#000" strokeWidth="1" /></pattern><rect width="100%" height="100%" fill="url(#grid-reg)" /></svg>
-      </div>
-
-      <nav className="absolute top-0 left-0 w-full p-10 flex justify-between items-center z-20">
-        <Link to="/" aria-label="SWANIDHI Home">
-          <Logo className="h-7" />
-        </Link>
-        <Link
-          to="/login"
-          className="px-6 py-3 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-slate-950 hover:border-slate-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 transition-all shadow-sm"
-        >
-          Access Terminal
-        </Link>
+    <div className="min-h-screen bg-white flex flex-col font-sans">
+      <nav className="p-8 flex justify-between items-center max-w-7xl mx-auto w-full">
+        <Logo className="h-8" />
+        <Link to="/login" className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors">Abort & Return</Link>
       </nav>
 
-      <main className="w-full max-w-4xl mt-12 space-y-12 relative z-10">
-        <header className="text-center space-y-3">
-          <h1 className="text-5xl font-black text-slate-950 tracking-tighter uppercase leading-none">Institutional Onboarding</h1>
-          <p className="text-sm font-medium text-slate-400 uppercase tracking-[0.4em]">Official Registry Portal v4.2</p>
-        </header>
+      <main className="flex-1 flex flex-col items-center justify-center p-6 pb-24 max-w-2xl mx-auto w-full">
+        <div className="w-full space-y-12">
 
-        <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-[3rem] shadow-[0_30px_70px_-20px_rgba(0,0,0,0.1)] border border-slate-100 p-10 md:p-16 space-y-12 animate-in slide-in-from-bottom-4 duration-500">
-          <div className="flex justify-center gap-4">
-            {([UserRole.HOSPITAL, UserRole.BLOOD_BANK] as const).map((r) => (
-              <button
-                key={r}
-                type="button"
-                onClick={() => setValue('role', r)}
-                className={`px-10 py-4 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all border-2 ${selectedRole === r
-                  ? 'bg-slate-950 text-white border-slate-950 shadow-lg scale-105'
-                  : 'bg-white text-slate-400 border-slate-100 hover:border-slate-200'
-                  }`}
-              >
-                {r.replace('_', ' ')} Registration
-              </button>
+          {/* Custom Stepper UI */}
+          <div className="flex items-center justify-between w-full px-4">
+            {[1, 2, 3].map((step) => (
+              <React.Fragment key={step}>
+                <div className="flex flex-col items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-black transition-all duration-500 ${currentStep === step ? 'bg-slate-950 text-white shadow-xl scale-110' :
+                      currentStep > step ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-400'
+                    }`}>
+                    {currentStep > step ? (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                    ) : step}
+                  </div>
+                  <span className={`text-[9px] font-black uppercase tracking-[0.2em] ${currentStep === step ? 'text-slate-900' : 'text-slate-300'}`}>
+                    {step === 1 ? 'Node Type' : step === 2 ? 'Credentials' : 'Validation'}
+                  </span>
+                </div>
+                {step < 3 && <div className={`flex-1 h-0.5 mx-4 transition-colors duration-1000 ${currentStep > step ? 'bg-emerald-500' : 'bg-slate-100'}`} />}
+              </React.Fragment>
             ))}
           </div>
 
-          <div className="grid md:grid-cols-2 gap-10">
-            <FormField id="orgName" label="Registered Entity Name" error={errors.orgName?.message as any} required>
-              <input {...register('orgName')} placeholder="e.g. Apollo Healthcare Group" className="w-full p-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-slate-950 focus:outline-none transition-all font-bold text-slate-900 placeholder:text-slate-200" />
-            </FormField>
-            <FormField id="regNumber" label="Government ID / License" error={errors.regNumber?.message as any} required>
-              <input {...register('regNumber')} placeholder="GHL-882-991" className="w-full p-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-slate-950 focus:outline-none transition-all font-mono font-bold text-slate-900 placeholder:text-slate-200" />
-            </FormField>
-            <FormField id="contactPerson" label="Authorized Representative" error={errors.contactPerson?.message as any} required>
-              <input {...register('contactPerson')} placeholder="Full Legal Name" className="w-full p-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-slate-950 focus:outline-none transition-all font-bold text-slate-900 placeholder:text-slate-200" />
-            </FormField>
-            <FormField id="email" label="Official Node Email" error={errors.email?.message as any} required>
-              <input {...register('email')} type="email" placeholder="admin@organization.gov.in" className="w-full p-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-slate-950 focus:outline-none transition-all font-bold text-slate-900 placeholder:text-slate-200" />
-            </FormField>
-          </div>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-12">
+            {currentStep === 1 && (
+              <div className="space-y-8 animate-in fade-in slide-in-from-left-4 duration-500">
+                <header className="space-y-3">
+                  <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Onboarding Context</h2>
+                  <p className="text-slate-500 font-medium">Select the institutional category for your node application.</p>
+                </header>
 
-          <FormField id="location" label="Physical Facility Address" error={errors.location?.message as any} required>
-            <textarea {...register('location')} rows={2} placeholder="Complete HQ/Facility address" className="w-full p-6 bg-slate-50 border-2 border-transparent rounded-[1.5rem] focus:bg-white focus:border-slate-950 focus:outline-none transition-all font-bold text-slate-900 resize-none placeholder:text-slate-200" />
-          </FormField>
-
-          <div className="space-y-4">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Verification Assets (Operational License PDF)</label>
-            <div className="relative border-4 border-dashed border-slate-100 rounded-[2rem] p-12 flex flex-col items-center justify-center gap-4 bg-slate-50 hover:bg-white hover:border-slate-200 transition-all cursor-pointer group">
-              <input {...register('document')} type="file" className="absolute inset-0 opacity-0 cursor-pointer z-10" />
-              <div className="w-16 h-16 bg-white rounded-3xl shadow-sm flex items-center justify-center text-slate-300 group-hover:text-rose-500 transition-colors">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {[
+                    { id: UserRole.HOSPITAL, title: 'Medical Facility', icon: '🏥', sub: 'Clinical Care & SOS' },
+                    { id: UserRole.BLOOD_BANK, title: 'Regional Reserve', icon: '🩸', sub: 'Inventory & Supplies' },
+                  ].map((role) => (
+                    <button
+                      key={role.id}
+                      type="button"
+                      onClick={() => setValue('role', role.id as any)}
+                      className={`p-8 rounded-[2.5rem] border-2 transition-all duration-300 text-left ${selectedRole === role.id ? 'border-slate-950 bg-slate-950 text-white shadow-2xl' : 'border-slate-100 hover:border-slate-300 bg-white'
+                        }`}
+                    >
+                      <span className="text-3xl mb-4 block">{role.icon}</span>
+                      <h3 className="text-sm font-black uppercase tracking-tight">{role.title}</h3>
+                      <p className={`text-[10px] uppercase font-bold tracking-widest mt-1 ${selectedRole === role.id ? 'text-slate-400' : 'text-slate-400'}`}>{role.sub}</p>
+                    </button>
+                  ))}
+                </div>
+                <Button onClick={goToNext} type="button" className="w-full py-6 bg-slate-950 text-white rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-xl">Apply as {selectedRole?.replace('_', ' ')}</Button>
               </div>
-              <div className="text-center">
-                <p className="text-sm font-black text-slate-900 uppercase tracking-tight">Transmit Encrypted Document</p>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{uploadedFile?.[0] ? uploadedFile[0].name : 'MAX SIZE: 10MB (PDF, JPEG, PNG)'}</p>
+            )}
+
+            {currentStep === 2 && (
+              <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
+                <header className="space-y-3 text-center">
+                  <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Institutional Record</h2>
+                  <p className="text-slate-500 font-medium">Official registration and facility identification.</p>
+                </header>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField label="Registered Entity Name" error={errors.orgName?.message}>
+                    <input {...register('orgName')} placeholder="e.g. St. Peters Medical" className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-slate-950 outline-none transition-all font-bold text-slate-900" />
+                  </FormField>
+                  <FormField label="Official License ID" error={errors.regNumber?.message}>
+                    <input {...register('regNumber')} placeholder="ID-8821-99" className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-slate-950 outline-none transition-all font-mono font-bold text-slate-900" />
+                  </FormField>
+                  <FormField label="Lead Representative" error={errors.contactPerson?.message}>
+                    <input {...register('contactPerson')} placeholder="Full Legal Name" className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-slate-950 outline-none transition-all font-bold text-slate-900" />
+                  </FormField>
+                  <FormField label="Node Identity (Email)" error={errors.email?.message}>
+                    <input {...register('email')} type="email" placeholder="admin@facility.org" className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-slate-950 outline-none transition-all font-bold text-slate-900" />
+                  </FormField>
+                </div>
+                <FormField label="Physical HQ Address" error={errors.location?.message}>
+                  <textarea {...register('location')} rows={3} placeholder="Complete physical location..." className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-slate-950 outline-none transition-all font-bold text-slate-900 resize-none" />
+                </FormField>
+
+                <div className="flex gap-4">
+                  <Button onClick={() => setCurrentStep(1)} type="button" variant="outline" className="flex-1 py-5 rounded-2xl border-slate-200 font-black uppercase text-[10px] tracking-widest text-slate-400 hover:text-slate-950">Previous</Button>
+                  <Button onClick={goToNext} type="button" className="flex-2 py-5 bg-slate-950 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl">Verify Details</Button>
+                </div>
               </div>
-            </div>
-            {errors.document && <p className="text-[10px] font-bold text-rose-600 uppercase tracking-tight text-center">{errors.document.message as string}</p>}
-          </div>
+            )}
 
-          <div className="p-8 bg-slate-950 text-white rounded-[2rem] flex items-start gap-5 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-6 opacity-[0.05] group-hover:scale-110 transition-transform">
-              <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71L12 2z" /></svg>
-            </div>
-            <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center flex-shrink-0">
-              <svg className="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" strokeWidth="2.5" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-1">Administrative Protocol</p>
-              <p className="text-[11px] font-medium leading-relaxed uppercase tracking-tight text-slate-300">
-                Registration subject to national admin approval. Internal verification typical cycle is 24-48 business hours.
-              </p>
-            </div>
-          </div>
+            {currentStep === 3 && (
+              <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
+                <header className="space-y-3 text-center">
+                  <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Identity Proofing</h2>
+                  <p className="text-slate-500 font-medium text-center">Transmission of clinical and legal licensing assets.</p>
+                </header>
 
-          <Button type="submit" isLoading={isSubmitting} disabled={!isValid} className="w-full py-7 bg-slate-950 text-white rounded-[2rem] font-black uppercase tracking-[0.5em] text-[11px] hover:bg-black transition-all duration-500 shadow-2xl">
-            Initialize Node Registration
-          </Button>
-        </form>
+                <div className="relative border-4 border-dashed border-slate-100 rounded-[3rem] p-16 flex flex-col items-center justify-center gap-6 bg-slate-50 hover:bg-white hover:border-slate-200 transition-all cursor-pointer group">
+                  <input {...register('document')} type="file" className="absolute inset-0 opacity-0 cursor-pointer z-10" />
+                  <div className="w-20 h-20 bg-white rounded-3xl shadow-xl border border-slate-100 flex items-center justify-center text-slate-300 group-hover:text-slate-950 transition-colors">
+                    <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-black text-slate-900 uppercase tracking-tight">Authorize Attachment</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                      {uploadedFile?.[0] ? uploadedFile[0].name : 'MAX 10MB (PDF/IMAGE)'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100 flex gap-5">
+                  <div className="w-10 h-10 bg-amber-500 text-white rounded-xl flex items-center justify-center shrink-0">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" strokeWidth="2.5" /></svg>
+                  </div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
+                    Node activation is conditional upon federal verification of licensing assets. Inaccurate filings result in registry blacklist.
+                  </p>
+                </div>
+
+                <div className="flex gap-4">
+                  <Button onClick={() => setCurrentStep(2)} type="button" variant="outline" className="flex-1 py-5 rounded-2xl border-slate-200 font-black uppercase text-[10px] tracking-widest text-slate-400 hover:text-slate-950">Go Back</Button>
+                  <Button type="submit" isLoading={isSubmitting} className="flex-2 py-5 bg-slate-950 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-2xl">Initialize Registration</Button>
+                </div>
+              </div>
+            )}
+          </form>
+        </div>
       </main>
+
+      <footer className="p-8 text-center text-[10px] font-black uppercase tracking-widest text-slate-300">
+        National Blood Management Infrastructure • Security Level IV
+      </footer>
     </div>
   );
 };
-
 
 export default Register;
