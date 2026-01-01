@@ -56,6 +56,9 @@ const BloodBankDashboard: React.FC = () => {
       onSuccess: () => {
         showToast('Dispatch protocol initiated. Signal updated.', 'success');
         setDispatchSos(null);
+      },
+      onError: (err: any) => {
+        showToast(err.response?.data?.message || err.message || "Dispatch failed", 'error');
       }
     });
   };
@@ -68,6 +71,9 @@ const BloodBankDashboard: React.FC = () => {
         setDonorName('');
         setDonorGroup('');
         showToast('Donor registered in Global Registry.', 'success');
+      },
+      onError: (err: any) => {
+        showToast(err.response?.data?.message || err.message || "Donor registration failed", 'error');
       }
     });
   };
@@ -76,6 +82,9 @@ const BloodBankDashboard: React.FC = () => {
     updateDonorStatus.mutate({ id, status }, {
       onSuccess: () => {
         showToast('Eligibility updated and synchronized.', 'info');
+      },
+      onError: (err: any) => {
+        showToast(err.response?.data?.message || err.message || "Eligibility update failed", 'error');
       }
     });
   };
@@ -316,10 +325,7 @@ const BloodBankDashboard: React.FC = () => {
             <div className="space-y-6">
               <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.25em]">Cryptographic Contribution Record</h4>
               <div className="space-y-3 max-h-[40vh] overflow-y-auto pr-4 custom-scrollbar">
-                {(viewingDonorHistory.history_records || [
-                  { action: 'INITIAL_REGISTRATION', date: '2024-11-20', details: 'Node synchronized with National Grid' },
-                  { action: 'ELIGIBILITY_VERIFIED', date: '2024-11-21', details: 'Post-sync clinical screening passed' },
-                ]).map((h: any, idx: number) => (
+                {(viewingDonorHistory.history_records || []).map((h: any, idx: number) => (
                   <div key={idx} className="flex gap-4 p-5 bg-slate-50 border border-slate-100 rounded-2xl">
                     <div className="w-1.5 h-1.5 bg-rose-600 rounded-full mt-1.5 flex-shrink-0"></div>
                     <div>

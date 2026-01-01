@@ -67,18 +67,11 @@ const PatientDashboard: React.FC = () => {
                            </div>
                         </div>
                         <div className="space-y-8">
-                           <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Notifications</h3>
-                           <div className="space-y-3">
-                              {[
-                                 { msg: 'SOS Signal accepted by National Grid', ts: 'Just now' },
-                                 { msg: 'Clinical narrative verified by duty officer', ts: '5m ago' },
-                                 { msg: 'Inventory reservation active in Sector-4', ts: '10m ago' },
-                              ].map((n, i) => (
-                                 <div key={i} className="flex justify-between items-start p-3 hover:bg-slate-50 rounded-lg transition-colors">
-                                    <p className="text-[11px] font-bold text-slate-600 uppercase tracking-tight">{n.msg}</p>
-                                    <span className="text-[9px] font-black text-slate-300 uppercase whitespace-nowrap">{n.ts}</span>
-                                 </div>
-                              ))}
+                           <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Clinical Narrative</h3>
+                           <div className="p-6 bg-rose-50 rounded-xl border border-rose-100">
+                              <p className="text-[11px] font-bold text-rose-900 uppercase leading-relaxed tracking-tight">
+                                 {req.remark || "Clinical documentation verified by national registry authorities. Signal integrity confirmed."}
+                              </p>
                            </div>
                         </div>
                      </div>

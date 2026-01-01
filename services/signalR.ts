@@ -21,7 +21,7 @@ class SignalRService {
   }
 
   private initConnection() {
-    const hubUrl = `${import.meta.env.VITE_API_BASE_URL || 'https://swanidhi-backend-g5f7c2gjfkh8drbt.centralindia-01.azurewebsites.net'}/hubs/swanidhi`;
+    const hubUrl = `${import.meta.env.VITE_API_BASE_URL}/hubs/swanidhi`;
 
     this.connection = new signalR.HubConnectionBuilder()
       .withUrl(hubUrl, {

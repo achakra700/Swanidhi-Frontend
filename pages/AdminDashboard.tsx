@@ -106,6 +106,9 @@ const AdminDashboard: React.FC = () => {
     updateDonorStatusMutation.mutate({ id, status: nextStatus }, {
       onSuccess: () => {
         showToast(`Donor ${id} synchronized: ${nextStatus}`, 'success');
+      },
+      onError: (err: any) => {
+        showToast(err.response?.data?.message || err.message || "Failed to update donor status", 'error');
       }
     });
   };
@@ -708,8 +711,42 @@ const AdminDashboard: React.FC = () => {
                   />
                 </FormField>
                 <div className="flex gap-4">
-                  <Button variant="danger" className="flex-1 rounded-2xl" onClick={() => { rejectMutation.mutate({ id: selectedOrg.id, reason: 'AUDIT_FAILED', note: adminRemark, adminId: user!.id, adminName: user!.name }); setSelectedOrg(null); }}>Reject Application</Button>
-                  <Button variant="primary" className="flex-1 rounded-2xl" onClick={() => { approveMutation.mutate({ id: selectedOrg.id, adminId: user!.id, adminName: user!.name }); setSelectedOrg(null); }}>Approve Node</Button>
+                  <Button
+                    variant="danger"
+                    className="flex-1 rounded-2xl"
+                    disabled={rejectMutation.isPending || approveMutation.isPending}
+                    onClick={() => {
+                      rejectMutation.mutate({ id: selectedOrg.id, reason: 'AUDIT_FAILED', note: adminRemark, adminId: user!.id, adminName: user!.name }, {
+                        onSuccess: () => {
+                          showToast(`Organization ${selectedOrg.name} rejected.`, 'info');
+                          setSelectedOrg(null);
+                        },
+                        onError: (err: any) => {
+                          showToast(err.response?.data?.message || err.message || "Rejection failed", 'error');
+                        }
+                      });
+                    }}
+                  >
+                    Reject Application
+                  </Button>
+                  <Button
+                    variant="primary"
+                    className="flex-1 rounded-2xl"
+                    disabled={rejectMutation.isPending || approveMutation.isPending}
+                    onClick={() => {
+                      approveMutation.mutate({ id: selectedOrg.id, adminId: user!.id, adminName: user!.name }, {
+                        onSuccess: () => {
+                          showToast(`Organization ${selectedOrg.name} approved.`, 'success');
+                          setSelectedOrg(null);
+                        },
+                        onError: (err: any) => {
+                          showToast(err.response?.data?.message || err.message || "Approval failed", 'error');
+                        }
+                      });
+                    }}
+                  >
+                    Approve Node
+                  </Button>
                 </div>
               </div>
             </div>

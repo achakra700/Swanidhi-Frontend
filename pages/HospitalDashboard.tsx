@@ -53,6 +53,9 @@ const HospitalDashboard: React.FC = () => {
       onSuccess: () => {
         setNewPatientName('');
         showToast('Patient ID Generated', 'success');
+      },
+      onError: (err: any) => {
+        showToast(err.response?.data?.message || err.message || "Failed to create patient record", 'error');
       }
     });
   };
@@ -61,6 +64,9 @@ const HospitalDashboard: React.FC = () => {
     togglePatient.mutate({ id, isActive: !currentStatus }, {
       onSuccess: () => {
         showToast('Patient access state updated', 'info');
+      },
+      onError: (err: any) => {
+        showToast(err.response?.data?.message || err.message || "Failed to toggle patient state", 'error');
       }
     });
   };
@@ -88,6 +94,9 @@ const HospitalDashboard: React.FC = () => {
         setReqUrgency('Standard');
         setReqPatientId('');
         setReqDoc(null);
+      },
+      onError: (err: any) => {
+        showToast(err.response?.data?.message || err.message || "SOS transmission failed", 'error');
       }
     });
   };
@@ -103,6 +112,9 @@ const HospitalDashboard: React.FC = () => {
         showToast('Receipt Confirmed. Lifecycle Complete.', 'success');
         setConfirmingReceiptId(null);
         setFulfillmentRemark('');
+      },
+      onError: (err: any) => {
+        showToast(err.response?.data?.message || err.message || "Confirmation failed", 'error');
       }
     });
   };
