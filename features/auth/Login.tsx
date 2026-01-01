@@ -62,11 +62,20 @@ const Login: React.FC = () => {
       const token = responseData.token || responseData.tokens?.accessToken;
       const refreshToken = responseData.refreshToken || responseData.tokens?.refreshToken;
 
-      // Construct user object from flat response
+      // Map backend role to frontend UserRole enum
+      const normalizeRole = (backendRole: string): UserRole => {
+        const role = backendRole?.toUpperCase();
+        if (role === 'BLOODBANK') return UserRole.BLOOD_BANK;
+        return role as UserRole;
+      };
+
+      const normalizedRole = normalizeRole(responseData.role);
+
+      // Construct user object from flat response with normalized role
       const user = responseData.user || {
         id: responseData.id || responseData.userId,
         email: responseData.email,
-        role: responseData.role,
+        role: normalizedRole,
         isRootAdmin: responseData.isRootAdmin,
         organizationId: responseData.organizationId,
         organizationType: responseData.organizationType,
@@ -85,6 +94,7 @@ const Login: React.FC = () => {
         organizationId: selectedRole === UserRole.ADMIN ? null : (user.organizationId || null)
       };
 
+      // Strict role check against the role selected in the UI
       if (finalUser.role !== selectedRole) {
         throw new Error(`Integrity Mismatch: You are not authorized for the ${selectedRole} tier.`);
       }
