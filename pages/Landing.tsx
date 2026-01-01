@@ -55,9 +55,22 @@ const Landing: React.FC = () => {
             <h1 className="text-6xl md:text-9xl font-black tracking-tighter leading-[0.85] uppercase mb-6 drop-shadow-2xl">
               SWA<span className="text-rose-600">NIDHI</span>
             </h1>
-            <p className="text-base md:text-2xl font-medium text-slate-300 max-w-3xl mx-auto leading-relaxed px-4 mb-10 drop-shadow-lg">
+            <div className="grid md:grid-cols-3 gap-4 max-w-2xl mx-auto mb-8 border-y border-white/10 py-4 opacity-80">
+              <div className="text-center">
+                <p className="text-[10px] font-black uppercase text-rose-500 mb-1">Self-Reliance</p>
+                <p className="text-[8px] font-bold uppercase text-slate-400">Swa-Nidhi</p>
+              </div>
+              <div className="text-center border-x border-white/10">
+                <p className="text-[10px] font-black uppercase text-rose-500 mb-1">Collective Responsibility</p>
+                <p className="text-[8px] font-bold uppercase text-slate-400">Social Ownership</p>
+              </div>
+              <div className="text-center">
+                <p className="text-[10px] font-black uppercase text-rose-500 mb-1">Life Preservation</p>
+                <p className="text-[8px] font-bold uppercase text-slate-400">Jivan Suraksha</p>
+              </div>
+            </div>
+            <p className="text-base md:text-2xl font-medium text-slate-300 max-w-3xl mx-auto leading-relaxed px-4 mb-10 drop-shadow-lg uppercase tracking-tight">
               India’s Integrated Infrastructure for <span className="text-white font-bold">Real-Time Emergency Blood Synchronization</span> across Districts and States.
-              A sovereign technical layer for public healthcare excellence.
             </p>
           </Reveal>
 
@@ -155,6 +168,113 @@ const Landing: React.FC = () => {
             <p className="text-slate-500 font-bold uppercase tracking-tight leading-relaxed">
               To architect a nation where no life is lost due to unavailability of blood. We aim for a secure, auditable, and universal blood coordination layer across all 700+ districts.
             </p>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* How it Works Section */}
+      <section className="bg-white py-32 border-b border-slate-100">
+        <div className="max-w-7xl mx-auto px-6">
+          <Reveal className="text-center mb-24">
+            <h2 className="text-[10px] font-black tracking-[0.5em] text-rose-600 uppercase mb-4">Operational Blueprint</h2>
+            <h3 className="text-4xl md:text-6xl font-black text-slate-950 uppercase tracking-tighter">How Grid Sync Works</h3>
+          </Reveal>
+
+          <div className="grid md:grid-cols-3 gap-16 relative">
+            <div className="absolute top-20 left-0 w-full h-px bg-slate-100 hidden md:block"></div>
+            {[
+              {
+                step: "01",
+                title: "Broadcast",
+                desc: "Hospitals broadcast real-time SOS signals when critical blood levels are detected in trauma or surgery.",
+                icon: "M15.536 8.464a5 5 0 010 7.072m2.828-9.9m-12.728 0a9 9 0 000 12.728"
+              },
+              {
+                step: "02",
+                title: "Synchronize",
+                desc: "Algorithmic matching identifies the closest verified blood hubs with specific inventory matches.",
+                icon: "M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              },
+              {
+                step: "03",
+                title: "Deploy",
+                desc: "Logistics are coordinated instantly, ensuring blood reaches the hospital within the critical 'Golden Hour'.",
+                icon: "M13 10V3L4 14h7v7l9-11h-7z"
+              }
+            ].map((s, i) => (
+              <Reveal key={i} className="relative z-10 space-y-8 text-center md:text-left">
+                <div className="w-16 h-16 bg-white border border-slate-200 rounded-3xl flex items-center justify-center text-rose-600 shadow-xl mx-auto md:mx-0">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d={s.icon} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                </div>
+                <div className="space-y-4">
+                  <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest leading-none">Phase {s.step}</p>
+                  <h4 className="text-2xl font-black text-slate-950 uppercase tracking-tight">{s.title}</h4>
+                  <p className="text-sm font-bold text-slate-500 uppercase leading-relaxed tracking-tight">{s.desc}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Emergency Statistics Section */}
+      <section className="bg-slate-950 py-32 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10 pointer-events-none">
+          <svg width="100%" height="100%"><pattern id="grid-stats" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="0.5" /></pattern><rect width="100%" height="100%" fill="url(#grid-stats)" /></svg>
+        </div>
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <div className="grid md:grid-cols-2 gap-24 items-center">
+            <Reveal className="space-y-8">
+              <h2 className="text-[10px] font-black tracking-[0.5em] text-rose-500 uppercase">Emergency Context</h2>
+              <h3 className="text-4xl md:text-7xl font-black text-white uppercase tracking-tighter leading-none">
+                The Cost of <br /><span className="text-rose-600">Sync Failure</span>
+              </h3>
+              <p className="text-lg font-bold text-slate-400 uppercase tracking-tight leading-relaxed max-w-md">
+                In India, the primary barrier to life preservation is not blood scarcity, but the synchronization delay between demand and available hubs.
+              </p>
+            </Reveal>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+              {[
+                { val: "12,000", sub: "DEATHS DAILY", desc: "Due to lack of timely blood access across India." },
+                { val: "1.1M", sub: "UNIT DEFICIT", desc: "Annual gap in the national emergency blood grid." },
+                { val: "60%", sub: "RURAL DELAY", desc: "Cases where blood fails to reach within the Golden Hour." },
+                { val: "100%", sub: "RESPONSIBILITY", desc: "Commitment to zero-latency life preservation logic." }
+              ].map((stat, i) => (
+                <Reveal key={i} className="p-10 bg-white/5 border border-white/10 rounded-[2.5rem] backdrop-blur-sm space-y-4 group hover:bg-white/10 transition-all">
+                  <p className="text-4xl font-black text-white tracking-tighter group-hover:text-rose-500 transition-colors uppercase">{stat.val}</p>
+                  <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest">{stat.sub}</p>
+                  <p className="text-[9px] font-bold text-slate-500 uppercase leading-relaxed tracking-widest">{stat.desc}</p>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Final Call to Action */}
+      <section className="bg-white py-32">
+        <div className="max-w-5xl mx-auto px-6">
+          <Reveal className="bg-slate-900 rounded-[4rem] p-16 md:p-24 text-center space-y-12 shadow-2xl relative overflow-hidden border border-white/5">
+            <div className="absolute top-0 right-0 p-12 opacity-10 rotate-12">
+              <svg className="w-64 h-64" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" /></svg>
+            </div>
+            <div className="relative z-10 space-y-6">
+              <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter leading-none">
+                Synchronize Your <br />Medical Node Today
+              </h2>
+              <p className="text-base md:text-xl font-bold text-slate-400 uppercase tracking-tight max-w-2xl mx-auto leading-relaxed">
+                Join the national grid to eliminate logistical latency and protect the sanctity of life through collective technical excellence.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center relative z-10">
+              <Link to="/login" className="px-12 py-5 bg-rose-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-rose-700 transition-all shadow-xl shadow-rose-900/20">
+                Authorized Login
+              </Link>
+              <Link to="/register" className="px-12 py-5 bg-white text-slate-900 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-slate-100 transition-all">
+                Register Organization
+              </Link>
+            </div>
           </Reveal>
         </div>
       </section>

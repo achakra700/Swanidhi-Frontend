@@ -10,13 +10,14 @@ const AmbientLight = 'ambientLight' as any;
 
 function NetworkNodes() {
   const ref = useRef<THREE.Points>(null!);
-  
+  const groupRef = useRef<THREE.Group>(null!);
+
   const positions = useMemo(() => {
-    const p = new Float32Array(1800 * 3);
-    for (let i = 0; i < 1800; i++) {
+    const p = new Float32Array(2000 * 3);
+    for (let i = 0; i < 2000; i++) {
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(2 * Math.random() - 1);
-      const r = 4.5 + Math.random() * 0.8;
+      const r = 4.2 + Math.random() * 0.5;
       p[i * 3] = r * Math.sin(phi) * Math.cos(theta);
       p[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
       p[i * 3 + 2] = r * Math.cos(phi);
@@ -26,23 +27,35 @@ function NetworkNodes() {
 
   useFrame((state) => {
     const time = state.clock.getElapsedTime();
-    ref.current.rotation.y = time * 0.03;
-    ref.current.rotation.x = time * 0.015;
+    ref.current.rotation.y = time * 0.05;
+
+    // Heartbeat pulse effect: double beat
+    const pulse = Math.pow(Math.sin(time * 3), 10) * 0.15;
+    const beat = Math.pow(Math.sin(time * 3 + 0.3), 10) * 0.1;
+    groupRef.current.scale.setScalar(1 + pulse + beat);
+
+    // Subtle breathing
+    ref.current.rotation.x = Math.sin(time * 0.5) * 0.1;
   });
 
   return (
-    <Group rotation={[0, 0, Math.PI / 12]}>
+    <Group ref={groupRef} rotation={[0, 0, Math.PI / 12]}>
       <Points ref={ref} positions={positions} stride={3} frustumCulled={false}>
         <PointMaterial
           transparent
           color="#f43f5e"
-          size={0.06}
+          size={0.07}
           sizeAttenuation={true}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
-          opacity={0.6}
+          opacity={0.8}
         />
       </Points>
+      {/* Central Core Pulse */}
+      <mesh>
+        <sphereGeometry args={[3.8, 32, 32]} />
+        <meshBasicMaterial color="#f43f5e" transparent opacity={0.05} />
+      </mesh>
     </Group>
   );
 }
@@ -55,7 +68,7 @@ const Hero3D = () => {
     setIsMobile(window.innerWidth < 768);
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
-    
+
     const handleMouseMove = (e: MouseEvent) => {
       setMousePos({
         x: (e.clientX / window.innerWidth - 0.5) * 20,
@@ -75,21 +88,21 @@ const Hero3D = () => {
       <div className="absolute inset-0 bg-slate-950 overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#1e1b4b_0%,#020617_100%)] opacity-50"></div>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full">
-           <svg className="w-full h-full opacity-[0.05]" viewBox="0 0 100 100">
-             <circle cx="50" cy="50" r="40" stroke="white" strokeWidth="0.1" fill="none" />
-             <circle cx="50" cy="50" r="30" stroke="white" strokeWidth="0.1" fill="none" />
-             <path d="M10 50H90M50 10V90" stroke="white" strokeWidth="0.05" />
-           </svg>
+          <svg className="w-full h-full opacity-[0.05]" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="40" stroke="white" strokeWidth="0.1" fill="none" />
+            <circle cx="50" cy="50" r="30" stroke="white" strokeWidth="0.1" fill="none" />
+            <path d="M10 50H90M50 10V90" stroke="white" strokeWidth="0.05" />
+          </svg>
         </div>
       </div>
     );
   }
 
   return (
-    <div 
+    <div
       className="absolute inset-0 z-0 bg-slate-950 transition-transform duration-1000 ease-out"
-      style={{ 
-        transform: `translate3d(${mousePos.x}px, ${mousePos.y}px, 0)` 
+      style={{
+        transform: `translate3d(${mousePos.x}px, ${mousePos.y}px, 0)`
       }}
     >
       <Suspense fallback={<div className="bg-slate-950 w-full h-full" />}>
