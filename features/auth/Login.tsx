@@ -54,17 +54,35 @@ const Login: React.FC = () => {
         expectedRole: selectedRole
       });
 
+      // Backend returns: { success: true, data: { id, email, role, token, refreshToken, ... } }
+      // Note: User fields are flat in data, not nested in a user object
       const responseData = response.data.data || response.data;
-      const { token, refreshToken, user, organizationId: topOrgId } = responseData;
 
-      if (!user) {
-        throw new Error("Authorization protocol failed: Record not found.");
+      // Extract tokens (flat structure from backend)
+      const token = responseData.token || responseData.tokens?.accessToken;
+      const refreshToken = responseData.refreshToken || responseData.tokens?.refreshToken;
+
+      // Construct user object from flat response
+      const user = responseData.user || {
+        id: responseData.id || responseData.userId,
+        email: responseData.email,
+        role: responseData.role,
+        isRootAdmin: responseData.isRootAdmin,
+        organizationId: responseData.organizationId,
+        organizationType: responseData.organizationType,
+        status: responseData.status,
+        firstName: responseData.firstName || 'System',
+        lastName: responseData.lastName || 'Administrator',
+      };
+
+      if (!user?.id || !token) {
+        throw new Error("Authorization protocol failed: Invalid response structure.");
       }
 
       // Admin has NO organization ID - strict enforcement
       const finalUser = {
         ...user,
-        organizationId: selectedRole === UserRole.ADMIN ? null : (topOrgId || user.organizationId || null)
+        organizationId: selectedRole === UserRole.ADMIN ? null : (user.organizationId || null)
       };
 
       if (finalUser.role !== selectedRole) {
