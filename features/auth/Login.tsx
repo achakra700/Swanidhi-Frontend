@@ -61,9 +61,10 @@ const Login: React.FC = () => {
         throw new Error("Authorization protocol failed: Record not found.");
       }
 
+      // Admin has NO organization ID - strict enforcement
       const finalUser = {
         ...user,
-        organizationId: topOrgId || user.organizationId || null
+        organizationId: selectedRole === UserRole.ADMIN ? null : (topOrgId || user.organizationId || null)
       };
 
       if (finalUser.role !== selectedRole) {
@@ -93,7 +94,7 @@ const Login: React.FC = () => {
     switch (role) {
       case UserRole.ADMIN:
         return {
-          title: 'Institutional Admin Verification',
+          title: 'Administrator Authentication',
           subtitle: 'Authorized access only',
           warning: 'Admin access is restricted to authorized personnel. All actions are audited.'
         };
@@ -165,8 +166,8 @@ const Login: React.FC = () => {
                         setError(null);
                       }}
                       className={`group relative p-4 rounded-xl border-2 text-left transition-all duration-200 hover:shadow-md ${selectedRole === role.id
-                          ? 'border-blue-600 bg-blue-50/50 ring-1 ring-blue-600/20'
-                          : 'border-slate-100 hover:border-blue-200 bg-white'
+                        ? 'border-blue-600 bg-blue-50/50 ring-1 ring-blue-600/20'
+                        : 'border-slate-100 hover:border-blue-200 bg-white'
                         }`}
                     >
                       <div className="text-2xl mb-2">{role.icon}</div>
