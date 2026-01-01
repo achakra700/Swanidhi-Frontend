@@ -50,10 +50,8 @@ api.interceptors.response.use(
           return api(originalRequest);
         } catch (refreshError) {
           // Refresh failed - force logout
-          localStorage.removeItem('ls_token');
-          localStorage.removeItem('ls_refresh_token');
-          localStorage.removeItem('ls_user');
-          window.location.href = '/#/login';
+          localStorage.clear();
+          window.location.hash = '#/login';
           return Promise.reject(refreshError);
         }
       }
@@ -61,10 +59,8 @@ api.interceptors.response.use(
 
     // Handle 403 Forbidden or failed refresh
     if (error.response?.status === 403) {
-      localStorage.removeItem('ls_token');
-      localStorage.removeItem('ls_refresh_token');
-      localStorage.removeItem('ls_user');
-      window.location.href = '/#/login';
+      localStorage.clear();
+      window.location.hash = '#/login';
     }
 
     return Promise.reject(error);

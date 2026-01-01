@@ -223,7 +223,7 @@ const AdminDashboard: React.FC = () => {
                     <td className="px-8 py-4 text-xs font-mono font-bold">{org.regId}</td>
                     <td className="px-8 py-4 text-right space-x-3">
                       <button onClick={() => setSelectedOrg(org)} className="text-[10px] font-black uppercase text-blue-600 hover:underline">Review Docs</button>
-                      <button onClick={() => approveMutation.mutate({ id: org.id, adminId: user!.id, adminName: user!.name }, {
+                      <button onClick={() => approveMutation.mutate({ id: org.id, adminId: user?.id || '', adminName: user?.name || 'Admin' }, {
                         onSuccess: () => showToast(`Organization ${org.name} approved.`, 'success'),
                         onError: (err: any) => showToast(err.response?.data?.message || err.message || "Approval failed", 'error')
                       })} className="bg-slate-900 text-white px-4 py-2 rounded-lg text-[9px] font-black uppercase">Approve</button>
@@ -724,7 +724,7 @@ const AdminDashboard: React.FC = () => {
                     className="flex-1 rounded-2xl"
                     disabled={rejectMutation.isPending || approveMutation.isPending}
                     onClick={() => {
-                      rejectMutation.mutate({ id: selectedOrg.id, reason: 'AUDIT_FAILED', note: adminRemark, adminId: user!.id, adminName: user!.name }, {
+                      rejectMutation.mutate({ id: selectedOrg.id, reason: 'AUDIT_FAILED', note: adminRemark, adminId: user?.id || '', adminName: user?.name || 'Admin' }, {
                         onSuccess: () => {
                           showToast(`Organization ${selectedOrg.name} rejected.`, 'info');
                           setSelectedOrg(null);
@@ -742,7 +742,7 @@ const AdminDashboard: React.FC = () => {
                     className="flex-1 rounded-2xl"
                     disabled={rejectMutation.isPending || approveMutation.isPending}
                     onClick={() => {
-                      approveMutation.mutate({ id: selectedOrg.id, adminId: user!.id, adminName: user!.name }, {
+                      approveMutation.mutate({ id: selectedOrg.id, adminId: user?.id || '', adminName: user?.name || 'Admin' }, {
                         onSuccess: () => {
                           showToast(`Organization ${selectedOrg.name} approved.`, 'success');
                           setSelectedOrg(null);

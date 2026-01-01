@@ -53,6 +53,9 @@ export interface User {
 
 export interface AuthState {
   user: User | null;
+  role: UserRole | null;
+  token: string | null;
+  organizationId: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
 }

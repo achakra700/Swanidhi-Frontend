@@ -15,19 +15,20 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, setState] = useState<AuthState>({
     user: null,
+    role: null,
+    token: null,
+    organizationId: null,
     isAuthenticated: false,
     isLoading: true,
   });
 
-
-
   const logout = useCallback(() => {
-    localStorage.removeItem('ls_token');
-    localStorage.removeItem('ls_refresh_token');
-    localStorage.removeItem('ls_user');
-    localStorage.removeItem('ls_role');
+    localStorage.clear(); // Explicitly clear everything on logout
     setState({
       user: null,
+      role: null,
+      token: null,
+      organizationId: null,
       isAuthenticated: false,
       isLoading: false,
     });
@@ -37,8 +38,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const hasRole = useCallback((role: UserRole) => {
-    return state.user?.role === role;
-  }, [state.user]);
+    return state.role === role;
+  }, [state.role]);
 
   const initializeSignalR = useCallback(async (user: User) => {
     try {
@@ -48,7 +49,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await signalRService.joinRoleGroup('admin', 'global');
       }
     } catch (err) {
-      // Production path: silent failure for background real-time features
+      // Background real-time failure is non-critical
     }
   }, []);
 
@@ -62,6 +63,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const user = JSON.parse(storedUser);
           setState({
             user,
+            role: user.role,
+            token: storedToken,
+            organizationId: user.organizationId || null,
             isAuthenticated: true,
             isLoading: false,
           });
@@ -93,17 +97,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     localStorage.setItem('ls_user', JSON.stringify(user));
     localStorage.setItem('ls_role', user.role);
+
     setState({
       user,
+      role: user.role,
+      token,
+      organizationId: user.organizationId || null,
       isAuthenticated: true,
       isLoading: false,
     });
+
     initializeSignalR(user);
 
-    // Auto-logout after 8 hours (standard shift)
-    setTimeout(() => {
-      logout();
-    }, 28800000);
+    // Standard shift session (8 hours)
+    setTimeout(logout, 28800000);
   };
 
 

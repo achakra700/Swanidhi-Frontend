@@ -40,41 +40,56 @@ const Login: React.FC = () => {
   });
 
   const handleLogin = async (data: LoginFormValues) => {
-    if (!selectedRole) return;
+    if (!selectedRole) {
+      setError("Please select an authorization role.");
+      return;
+    }
+
     setIsAuthorizing(true);
     setError(null);
     try {
       const response = await api.post('/api/auth/login', {
-        ...data,
+        email: data.email,
+        password: data.password,
         expectedRole: selectedRole
       });
 
-      const { token, refreshToken, user, organizationId, organizationType } = response.data.data || response.data;
+      // Backend typically returns data wrapped in a data property
+      const responseData = response.data.data || response.data;
+      const { token, refreshToken, user, organizationId: topOrgId } = responseData;
 
-      // Map backend flat fields to User object
-      const mappedUser = {
-        ...user,
-        organizationId: organizationId || user.organizationId,
-        organizationType: organizationType || user.organizationType
-      };
-
-      if (mappedUser.role !== selectedRole) {
-        throw new Error(`Access Denied: Your account is not authorized as a ${selectedRole.replace('_', ' ')}.`);
+      if (!user) {
+        throw new Error("Authorization protocol failed: Record not found.");
       }
 
-      login(token, mappedUser, refreshToken);
-
-      const routes: Record<string, string> = {
-        [UserRole.ADMIN]: '/admin',
-        [UserRole.HOSPITAL]: '/hospital',
-        [UserRole.BLOOD_BANK]: '/bloodbank',
-        [UserRole.DONOR]: '/donor',
-        [UserRole.PATIENT]: '/patient',
+      // Consolidate user object with organization mapping
+      // Admins (and possibly donors/patients) may not have an organizationId
+      const finalUser = {
+        ...user,
+        organizationId: topOrgId || user.organizationId || null
       };
 
-      navigate(routes[user.role] || '/');
+      // Strict role enforcement
+      if (finalUser.role !== selectedRole) {
+        throw new Error(`Integrity Mismatch: You are not authorized for the ${selectedRole} tier.`);
+      }
+
+      // Transmit to AuthContext
+      login(token, finalUser, refreshToken);
+
+      // Deterministic routing
+      const routes: Record<UserRole, string> = {
+        [UserRole.ADMIN]: '/admin/dashboard',
+        [UserRole.HOSPITAL]: '/hospital/dashboard',
+        [UserRole.BLOOD_BANK]: '/bloodbank/dashboard',
+        [UserRole.DONOR]: '/donor/dashboard',
+        [UserRole.PATIENT]: '/patient/dashboard',
+      };
+
+      navigate(routes[finalUser.role as UserRole] || '/');
     } catch (err: any) {
-      setError(err.message || err.response?.data?.message || 'Authentication failed. Please verify your credentials.');
+      const msg = err.response?.data?.message || err.message || 'Authentication failed. Verify credentials.';
+      setError(msg);
     } finally {
       setIsAuthorizing(false);
     }

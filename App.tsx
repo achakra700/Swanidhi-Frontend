@@ -63,42 +63,47 @@ const App: React.FC = () => {
 
                   {/* Hospital Terminal: Strict Isolation */}
                   <Route element={<ProtectedRoute allowedRoles={[UserRole.HOSPITAL]} />}>
-                    <Route path="/hospital" element={<HospitalDashboard />} />
+                    <Route path="/hospital/dashboard" element={<HospitalDashboard />} />
                     <Route path="/hospital/request" element={<HospitalDashboard />} />
                     <Route path="/hospital/sos" element={<HospitalDashboard />} />
                     <Route path="/hospital/patients" element={<HospitalDashboard />} />
+                    <Route path="/hospital" element={<Navigate to="/hospital/dashboard" replace />} />
                   </Route>
 
                   {/* Admin Governance: Strict Isolation */}
                   <Route element={<ProtectedRoute allowedRoles={[UserRole.ADMIN]} />}>
-                    <Route path="/admin" element={<AdminDashboard />} />
+                    <Route path="/admin/dashboard" element={<AdminDashboard />} />
                     <Route path="/admin/orgs" element={<AdminDashboard />} />
                     <Route path="/admin/donors" element={<AdminDashboard />} />
                     <Route path="/admin/sos" element={<AdminDashboard />} />
                     <Route path="/admin/audit" element={<AdminDashboard />} />
                     <Route path="/admin/health" element={<AdminDashboard />} />
                     <Route path="/admin/override" element={<AdminDashboard />} />
+                    <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
                   </Route>
 
                   {/* Blood Bank Logistics: Strict Isolation */}
                   <Route element={<ProtectedRoute allowedRoles={[UserRole.BLOOD_BANK]} />}>
-                    <Route path="/bloodbank" element={<BloodBankDashboard />} />
+                    <Route path="/bloodbank/dashboard" element={<BloodBankDashboard />} />
                     <Route path="/bloodbank/sos" element={<BloodBankDashboard />} />
                     <Route path="/bloodbank/inventory" element={<BloodBankDashboard />} />
                     <Route path="/bloodbank/donors" element={<BloodBankDashboard />} />
                     <Route path="/bloodbank/dispatch" element={<BloodBankDashboard />} />
+                    <Route path="/bloodbank" element={<Navigate to="/bloodbank/dashboard" replace />} />
                   </Route>
 
                   {/* Donor & Patient Terminals: Strict Isolation */}
                   <Route element={<ProtectedRoute allowedRoles={[UserRole.DONOR]} />}>
-                    <Route path="/donor" element={<DonorDashboard />} />
+                    <Route path="/donor/dashboard" element={<DonorDashboard />} />
                     <Route path="/donor/requests" element={<DonorDashboard />} />
                     <Route path="/donor/history" element={<DonorDashboard />} />
                     <Route path="/donor/profile" element={<DonorDashboard />} />
+                    <Route path="/donor" element={<Navigate to="/donor/dashboard" replace />} />
                   </Route>
 
                   <Route element={<ProtectedRoute allowedRoles={[UserRole.PATIENT]} />}>
-                    <Route path="/patient" element={<PatientDashboard />} />
+                    <Route path="/patient/dashboard" element={<PatientDashboard />} />
+                    <Route path="/patient" element={<Navigate to="/patient/dashboard" replace />} />
                   </Route>
                 </Route>
               </Route>
