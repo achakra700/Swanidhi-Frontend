@@ -48,13 +48,20 @@ const Login: React.FC = () => {
         expectedRole: selectedRole
       });
 
-      const { token, user } = response.data.data || response.data;
+      const { token, refreshToken, user, organizationId, organizationType } = response.data.data || response.data;
 
-      if (user.role !== selectedRole) {
+      // Map backend flat fields to User object if needed
+      const mappedUser = {
+        ...user,
+        organizationId: organizationId || user.organizationId,
+        organizationType: organizationType || user.organizationType
+      };
+
+      if (mappedUser.role !== selectedRole) {
         throw new Error(`Authorization Mismatch: This account is not registered as a ${selectedRole.replace('_', ' ')} node.`);
       }
 
-      login(token, user);
+      login(token, mappedUser, refreshToken);
 
       const routes: Record<string, string> = {
         [UserRole.ADMIN]: '/admin',

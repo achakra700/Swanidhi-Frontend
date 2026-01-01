@@ -45,6 +45,8 @@ export interface User {
   email: string;
   name: string;
   role: UserRole;
+  organizationId?: string;
+  organizationType?: string;
   orgName?: string;
   regId?: string;
 }

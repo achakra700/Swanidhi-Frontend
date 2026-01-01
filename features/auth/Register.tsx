@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -19,13 +19,14 @@ const registerSchema = z.object({
   contactPerson: z.string().min(3, 'Authorized Representative name required'),
   email: z.string().email('Official institutional email required'),
   location: z.string().min(10, 'Full Facility Address required'),
-  document: z.any().refine((files) => files?.length === 1, "Operational License (PDF/Image) is mandatory"),
+  document: z.any()
+    .refine((files) => files?.length === 1, "Operational License (PDF/Image) is mandatory")
+    .refine((files) => files?.[0]?.size <= 10 * 1024 * 1024, "File size must not exceed 10MB"),
 });
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 const Register: React.FC = () => {
-  const navigate = useNavigate();
   const { showToast } = useToast();
   const [isSuccess, setIsSuccess] = useState(false);
 

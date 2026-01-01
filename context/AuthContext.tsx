@@ -5,7 +5,7 @@ import { User, AuthState, UserRole } from '../types';
 import { signalRService } from '../services/signalR';
 
 interface AuthContextType extends AuthState {
-  login: (token: string, user: User) => void;
+  login: (token: string, user: User, refreshToken?: string) => void;
   logout: () => void;
   hasRole: (role: UserRole) => boolean;
 }
@@ -23,6 +23,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = useCallback(() => {
     localStorage.removeItem('ls_token');
+    localStorage.removeItem('ls_refresh_token');
     localStorage.removeItem('ls_user');
     localStorage.removeItem('ls_role');
     setState({
@@ -85,8 +86,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [logout, initializeSignalR]);
 
-  const login = (token: string, user: User) => {
+  const login = (token: string, user: User, refreshToken?: string) => {
     localStorage.setItem('ls_token', token);
+    if (refreshToken) {
+      localStorage.setItem('ls_refresh_token', refreshToken);
+    }
     localStorage.setItem('ls_user', JSON.stringify(user));
     localStorage.setItem('ls_role', user.role);
     setState({
