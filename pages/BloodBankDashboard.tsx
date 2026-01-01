@@ -113,7 +113,10 @@ const BloodBankDashboard: React.FC = () => {
                   {i.units < 10 && <StatusBadge status="LOW STOCK" />}
                 </div>
                 <p className="text-5xl font-black text-slate-950 tracking-tighter leading-none">{i.units}<span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Units</span></p>
-                <button onClick={() => updateInventory.mutate({ type: i.type, units: i.units + 5 })} className="mt-8 text-[10px] font-black uppercase text-blue-600 hover:text-blue-800 tracking-widest">+ Emergency Batch</button>
+                <button onClick={() => updateInventory.mutate({ type: i.type, units: i.units + 5 }, {
+                  onSuccess: () => showToast(`Emergency batch of ${i.type} added.`, 'success'),
+                  onError: (err: any) => showToast(err.response?.data?.message || err.message || "Inventory update failed", 'error')
+                })} className="mt-8 text-[10px] font-black uppercase text-blue-600 hover:text-blue-800 tracking-widest">+ Emergency Batch</button>
               </div>
             ))}
           </div>
@@ -153,8 +156,14 @@ const BloodBankDashboard: React.FC = () => {
                     <button onClick={() => setSelectedSosRouting(req)} className="text-[10px] font-black uppercase text-blue-600 hover:underline mr-4">Route Context</button>
                     {req.status === SOSStatus.CREATED ? (
                       <>
-                        <button onClick={() => updateStatus.mutate({ id: req.id, status: SOSStatus.ACCEPTED })} className="bg-slate-950 text-white px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-slate-100 transition-all hover:scale-105 active:scale-95">Accept</button>
-                        <button onClick={() => updateStatus.mutate({ id: req.id, status: SOSStatus.CANCELLED, reason: 'Manual Rejection: Grid Capacity Limit Hit' })} className="text-[10px] font-black uppercase text-rose-600 hover:bg-rose-50 px-4 py-2.5 rounded-xl">Reject</button>
+                        <button onClick={() => updateStatus.mutate({ id: req.id, status: SOSStatus.ACCEPTED }, {
+                          onSuccess: () => showToast('SOS Accepted locally.', 'success'),
+                          onError: (err: any) => showToast(err.response?.data?.message || err.message || "Failed to accept SOS", 'error')
+                        })} className="bg-slate-950 text-white px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-slate-100 transition-all hover:scale-105 active:scale-95">Accept</button>
+                        <button onClick={() => updateStatus.mutate({ id: req.id, status: SOSStatus.CANCELLED, reason: 'Manual Rejection: Grid Capacity Limit Hit' }, {
+                          onSuccess: () => showToast('SOS Cancelled.', 'info'),
+                          onError: (err: any) => showToast(err.response?.data?.message || err.message || "Failed to reject SOS", 'error')
+                        })} className="text-[10px] font-black uppercase text-rose-600 hover:bg-rose-50 px-4 py-2.5 rounded-xl">Reject</button>
                       </>
                     ) : (
                       <button onClick={() => setDispatchSos(req)} className="bg-blue-600 text-white px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-100 transition-all hover:scale-105 active:scale-95">Initiate Dispatch</button>

@@ -223,7 +223,10 @@ const AdminDashboard: React.FC = () => {
                     <td className="px-8 py-4 text-xs font-mono font-bold">{org.regId}</td>
                     <td className="px-8 py-4 text-right space-x-3">
                       <button onClick={() => setSelectedOrg(org)} className="text-[10px] font-black uppercase text-blue-600 hover:underline">Review Docs</button>
-                      <button onClick={() => approveMutation.mutate({ id: org.id, adminId: user!.id, adminName: user!.name })} className="bg-slate-900 text-white px-4 py-2 rounded-lg text-[9px] font-black uppercase">Approve</button>
+                      <button onClick={() => approveMutation.mutate({ id: org.id, adminId: user!.id, adminName: user!.name }, {
+                        onSuccess: () => showToast(`Organization ${org.name} approved.`, 'success'),
+                        onError: (err: any) => showToast(err.response?.data?.message || err.message || "Approval failed", 'error')
+                      })} className="bg-slate-900 text-white px-4 py-2 rounded-lg text-[9px] font-black uppercase">Approve</button>
                     </td>
                   </tr>
                 ))}
@@ -417,7 +420,10 @@ const AdminDashboard: React.FC = () => {
                       <td className="px-10 py-6"><StatusBadge status={sos.status} /></td>
                       <td className="px-10 py-6 text-right">
                         <button
-                          onClick={() => { showToast(`Initiating manual escalation for ${sos.id}...`, 'info'); setSelectedSos(sos); }}
+                          onClick={() => {
+                            showToast(`Initiating manual escalation for ${sos.id}...`, 'info');
+                            setSelectedSos(sos);
+                          }}
                           className="bg-slate-900 text-white px-6 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg hover:bg-rose-600 transition-all"
                         >
                           Force Transition
