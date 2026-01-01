@@ -92,11 +92,21 @@ const PatientDashboard: React.FC = () => {
             </div>
          )}
 
-         <div className="bg-slate-50 p-8 rounded-2xl border border-dashed border-slate-200 text-center">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-relaxed max-w-lg mx-auto">
-               Contact your hospital ward for non-logistical medical updates. SWANIDHI tracking is restricted to blood supply chain visibility only.
-            </p>
+         <div className="bg-slate-50 p-8 rounded-2xl border border-dashed border-slate-200 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="text-center md:text-left">
+               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Emergency Protocols</p>
+               <p className="text-xs font-bold uppercase text-slate-900">National Registry Hotline: 108-GRID-SAFE</p>
+            </div>
+            <div className="h-px w-full md:w-px md:h-8 bg-slate-200"></div>
+            <div className="text-center md:text-right">
+               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Primary Liaison</p>
+               <p className="text-xs font-bold uppercase text-slate-900">Hospital Ward Admin</p>
+            </div>
          </div>
+
+         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-relaxed max-w-lg mx-auto text-center mt-8">
+            Contact your hospital ward for non-logistical medical updates. SWANIDHI tracking is restricted to blood supply chain visibility only.
+         </p>
       </div>
    );
 };

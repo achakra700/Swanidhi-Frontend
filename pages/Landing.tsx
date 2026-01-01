@@ -132,7 +132,8 @@ const Landing: React.FC = () => {
               </h3>
             </div>
             <p className="text-xl text-slate-500 font-medium leading-relaxed uppercase tracking-tight">
-              SWANIDHI is India’s emergency blood coordination platform. We connect hospitals, registered blood banks, and verified donors in real-time to reduce delays in critical blood availability.
+              SWANIDHI means a <span className="text-rose-600 font-black">sacred collective reserve</span> — a system built to protect life through shared responsibility.
+              We synchronize hospitals, registered blood banks, and verified donors in a unified sovereign grid.
             </p>
             <div className="flex gap-12">
               <div className="space-y-1">
