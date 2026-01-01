@@ -2,14 +2,14 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import SosTimeline from '../components/sos/SosTimeline';
-import { useRealtimeSos } from '../hooks/useRealtimeSos';
+import { useSosDetail } from '../hooks/useSos';
 import { DashboardSkeleton } from '../components/ui/Skeleton';
 import Button from '../components/ui/Button';
 
 const SOSDetail: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data: sos, isLoading } = useRealtimeSos(id || '');
+  const { data: sos, isLoading } = useSosDetail(id || '');
 
   if (isLoading || !sos) return <div className="p-10"><DashboardSkeleton /></div>;
 
@@ -36,8 +36,8 @@ const SOSDetail: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center gap-4 bg-emerald-50 px-6 py-3 rounded-2xl border border-emerald-100 shadow-sm">
-          <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-          <p className="text-[10px] font-black text-emerald-700 uppercase tracking-widest leading-none">Cold-Chain Secure: 4.2°C</p>
+          <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+          <p className="text-[10px] font-black text-emerald-700 uppercase tracking-widest leading-none">Security: Grid Multi-Verified</p>
         </div>
       </header>
 
@@ -64,7 +64,7 @@ const SOSDetail: React.FC = () => {
                   <h3 className="text-xl font-black text-white uppercase tracking-tight">Active Courier Trace</h3>
                 </div>
                 <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-xl px-4 py-2 text-[10px] font-black text-white uppercase tracking-widest">
-                  ETA: 14m 20s
+                  Status: {sos.status}
                 </div>
               </div>
               <div className="flex items-center gap-4 text-white/40">

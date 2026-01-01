@@ -61,7 +61,7 @@ const PatientDashboard: React.FC = () => {
                                  <div className="w-10 h-10 bg-white rounded-lg border border-slate-200 flex items-center justify-center font-black">B</div>
                                  <div>
                                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Reserve Hub</p>
-                                    <p className="text-xs font-bold uppercase text-slate-900">{req.status === 'CREATED' ? 'Awaiting Allocation' : 'Sector-4 Metro Bank'}</p>
+                                    <p className="text-xs font-bold uppercase text-slate-900">{req.status === 'CREATED' ? 'Awaiting Grid Sync' : 'Reserve Hub Allocated'}</p>
                                  </div>
                               </div>
                            </div>

@@ -3,7 +3,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAdminStats, usePendingOrganizations, useSystemHealth, useApproveOrganization, useRejectOrganization, useAdminDonors, useUpdateDonorStatus } from '../hooks/useAdmin';
 import { useAuditLogs } from '../hooks/useAuditLogs';
-import { useRealtimeSosList } from '../hooks/useRealtimeSos';
+import { useSosRequests } from '../hooks/useSos';
 import { DashboardSkeleton } from '../components/ui/Skeleton';
 import StatusBadge from '../components/ui/StatusBadge';
 import Button from '../components/ui/Button';
@@ -38,7 +38,7 @@ const AdminDashboard: React.FC = () => {
   const { data: orgs, isLoading: orgsLoading } = usePendingOrganizations();
   const { data: health, isLoading: healthLoading } = useSystemHealth();
   const { data: logs } = useAuditLogs();
-  const { data: sosList } = useRealtimeSosList();
+  const { data: sosList } = useSosRequests();
   const { data: donorsFromApi, isLoading: donorsLoading } = useAdminDonors();
 
   // Mutations
@@ -77,7 +77,7 @@ const AdminDashboard: React.FC = () => {
 
   const filteredSosList = useMemo(() => {
     if (!sosList) return [];
-    return sosList.filter(s => {
+    return (sosList as SOSRequest[]).filter((s: SOSRequest) => {
       const sMatch = sosFilterStatus === 'ALL' || s.status === sosFilterStatus;
       const gMatch = sosFilterGroup === 'ALL' || s.bloodType === sosFilterGroup;
       const uMatch = sosFilterUrgency === 'ALL' || s.urgency === sosFilterUrgency;
@@ -362,7 +362,7 @@ const AdminDashboard: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredSosList.map(sos => (
+                  {filteredSosList.map((sos: SOSRequest) => (
                     <tr key={sos.id} className="hover:bg-slate-50">
                       <td className="px-8 py-4 text-xs font-mono font-bold">{sos.id}</td>
                       <td className="px-8 py-4 text-xs font-black">{sos.bloodType}</td>
@@ -407,7 +407,7 @@ const AdminDashboard: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
-                  {sosList?.filter(s => s.status !== SOSStatus.FULFILLED && s.status !== SOSStatus.CANCELLED).map(sos => (
+                  {sosList?.filter((s: SOSRequest) => s.status !== SOSStatus.FULFILLED && s.status !== SOSStatus.CANCELLED).map((sos: SOSRequest) => (
                     <tr key={sos.id} className="hover:bg-rose-50/30 transition-colors group">
                       <td className="px-10 py-6">
                         <p className="text-sm font-black text-slate-950 uppercase tracking-tight">{sos.id}</p>
@@ -452,10 +452,12 @@ const AdminDashboard: React.FC = () => {
             <div className="bg-white p-8 rounded-2xl border border-slate-200 space-y-6">
               <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Service Integrity</h3>
               <div className="space-y-3">
-                {['VITE_API_URL', 'SIGNALR_ENDPOINT', 'AUTH_GRID_ID', 'CORE_LOG_BUCKET'].map(key => (
+                {['VITE_API_BASE_URL', 'MODE'].map(key => (
                   <div key={key} className="flex justify-between items-center text-[10px] font-bold uppercase tracking-tight text-slate-500 py-3 border-b border-slate-50">
                     <span>{key}</span>
-                    <span className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[9px] font-black">VALIDATED</span>
+                    <span className={`px-3 py-1 rounded-full text-[9px] font-black ${key === 'MODE' ? 'bg-emerald-50 text-emerald-600' : (import.meta.env[key] ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600')}`}>
+                      {key === 'MODE' ? import.meta.env.MODE : (import.meta.env[key] ? 'LIVE' : 'MISSING')}
+                    </span>
                   </div>
                 ))}
               </div>

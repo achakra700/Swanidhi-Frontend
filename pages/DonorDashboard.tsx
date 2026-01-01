@@ -33,12 +33,18 @@ const DonorDashboard: React.FC = () => {
       acceptDonation.mutate(id, {
         onSuccess: () => {
           showToast(`Donation scheduled for ${id}. Report to hub on the scheduled date.`, 'success');
+        },
+        onError: (err: any) => {
+          showToast(err.response?.data?.message || err.message || "Failed to accept appointment", 'error');
         }
       });
     } else {
       declineDonation.mutate(id, {
         onSuccess: () => {
           showToast(`Request ${id} declined. Your availability has been updated.`, 'info');
+        },
+        onError: (err: any) => {
+          showToast(err.response?.data?.message || err.message || "Failed to decline request", 'error');
         }
       });
     }

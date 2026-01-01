@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useRealtimeSosList } from '../hooks/useRealtimeSos';
-import { useUpdateSosStatus } from '../hooks/useSos';
+import { useSosRequests, useUpdateSosStatus } from '../hooks/useSos';
 import { useBloodInventory, useUpdateInventory } from '../hooks/useInventory';
 import { useAdminDonors, useUpdateDonorStatus, useRegisterDonor } from '../hooks/useAdmin';
 import { SOSStatus, BloodType, SOSRequest, DeliveryMethod, EligibilityStatus } from '../types';
@@ -29,7 +28,7 @@ const BloodBankDashboard: React.FC = () => {
     else setActiveView('INVENTORY');
   }, [location.pathname]);
 
-  const { data: requests, isLoading: requestsLoading } = useRealtimeSosList();
+  const { data: requests, isLoading: requestsLoading } = useSosRequests();
   const { data: inventory, isLoading: invLoading } = useBloodInventory();
   const { data: donors, isLoading: donorsLoading } = useAdminDonors();
   const updateStatus = useUpdateSosStatus();
@@ -100,7 +99,7 @@ const BloodBankDashboard: React.FC = () => {
       <header className="bg-white p-8 rounded-2xl border border-slate-200 flex flex-col md:flex-row justify-between items-center gap-6">
         <div>
           <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Inventory Hub</h1>
-          <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">{user?.orgName || 'Regional Reserve'}</p>
+          <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">{user?.orgName || 'Authorized Hub Node'}</p>
         </div>
       </header>
 

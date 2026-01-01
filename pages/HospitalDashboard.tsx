@@ -126,7 +126,7 @@ const HospitalDashboard: React.FC = () => {
       <header className="bg-white p-8 rounded-2xl border border-slate-200 flex flex-col md:flex-row justify-between items-center gap-6">
         <div>
           <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Clinical Operations</h1>
-          <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">{user?.orgName || 'Facility Delta'}</p>
+          <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">{user?.orgName || 'Authorized Hospital Node'}</p>
         </div>
       </header>
 
