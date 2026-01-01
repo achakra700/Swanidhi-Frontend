@@ -3,9 +3,24 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Logo from '../../components/ui/Logo';
 import Footer from '../../components/landing/Footer';
+import { useAuth } from '../../context/AuthContext';
+import { UserRole } from '../../types';
 
 const LegalLayout: React.FC<{ children: React.ReactNode; title: string; subtitle: string }> = ({ children, title, subtitle }) => {
   const location = useLocation();
+  const { user } = useAuth();
+
+  const getDashboardPath = () => {
+    if (!user) return '/login';
+    switch (user.role) {
+      case UserRole.ADMIN: return '/admin';
+      case UserRole.HOSPITAL: return '/hospital';
+      case UserRole.BLOOD_BANK: return '/bloodbank';
+      case UserRole.DONOR: return '/donor';
+      case UserRole.PATIENT: return '/patient';
+      default: return '/login';
+    }
+  };
 
   const links = [
     { label: 'About Us', path: '/about' },
@@ -23,8 +38,8 @@ const LegalLayout: React.FC<{ children: React.ReactNode; title: string; subtitle
         <Link to="/" className="focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 rounded">
           <Logo className="h-6" />
         </Link>
-        <Link to="/login" className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors">
-          Institutional Access
+        <Link to={getDashboardPath()} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors">
+          {user ? 'Return to Terminal' : 'Institutional Access'}
         </Link>
       </nav>
 
@@ -36,21 +51,19 @@ const LegalLayout: React.FC<{ children: React.ReactNode; title: string; subtitle
               <p className="text-[10px] font-black tracking-[0.4em] text-rose-600 uppercase ml-4">Registry Repository</p>
               <nav className="flex flex-col gap-1.5">
                 {links.map(link => (
-                  <a
+                  <Link
                     key={link.path}
-                    href={`#${link.path}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    to={link.path}
                     className={`px-5 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-between group ${location.pathname === link.path
-                        ? 'bg-slate-900 text-white shadow-xl translate-x-2'
-                        : 'text-slate-400 hover:text-slate-950 hover:bg-slate-100'
+                      ? 'bg-slate-900 text-white shadow-xl translate-x-2'
+                      : 'text-slate-400 hover:text-slate-950 hover:bg-slate-100'
                       }`}
                   >
                     {link.label}
-                    <svg className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className={`w-3 h-3 group-hover:opacity-100 transition-opacity ${location.pathname === link.path ? 'opacity-100' : 'opacity-0'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                  </a>
+                  </Link>
                 ))}
               </nav>
             </div>
@@ -79,6 +92,16 @@ const LegalLayout: React.FC<{ children: React.ReactNode; title: string; subtitle
             <div className="max-w-4xl">
               {children}
             </div>
+
+            <footer className="pt-20 border-t border-slate-100 flex justify-between items-center">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">
+                Last Protocol Update: {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase()}
+              </p>
+              <div className="flex gap-4">
+                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                <span className="text-[9px] font-bold text-slate-400 uppercase">Integrity Verified</span>
+              </div>
+            </footer>
           </div>
         </div>
       </main>

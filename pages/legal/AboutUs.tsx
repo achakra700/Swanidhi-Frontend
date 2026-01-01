@@ -1,17 +1,21 @@
 
 import React from 'react';
 import LegalLayout from './LegalLayout';
+import Logo from '../../components/ui/Logo';
 
 const AboutUs: React.FC = () => {
   return (
     <LegalLayout title="Institutional Profile" subtitle="Platform Overview v4.2">
       <div className="space-y-16 text-slate-600">
-        
-        <section className="space-y-8">
+
+        <section className="space-y-8 relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-8 opacity-[0.05]">
+            <Logo className="h-24" />
+          </div>
           <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight">1. Architectural Intent</h2>
           <div className="space-y-6 text-lg font-medium leading-relaxed uppercase tracking-tight">
             <p>
-              SWANIDHI represents the first national-scale attempt to transition emergency blood logistics from a "pull-based" manual inquiry system to a "push-based" real-time synchronization layer. 
+              SWANIDHI represents the first national-scale attempt to transition emergency blood logistics from a "pull-based" manual inquiry system to a "push-based" real-time synchronization layer.
               Historically, the Indian healthcare system has functioned through fragmented silos where blood availability was communicated via telephonic calls, informal social groups, and unverified public requests.
             </p>
             <p>
@@ -25,7 +29,7 @@ const AboutUs: React.FC = () => {
 
         <section className="bg-slate-50 p-12 rounded-[3.5rem] border border-slate-100 relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:scale-110 transition-transform">
-             <svg className="w-48 h-48" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71L12 2z" /></svg>
+            <svg className="w-48 h-48" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71L12 2z" /></svg>
           </div>
           <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-10 border-b border-slate-200 pb-4">2. The Ethos of SWANIDHI</h2>
           <div className="grid md:grid-cols-2 gap-12">
