@@ -24,15 +24,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
   }
 
   if (user && !allowedRoles.includes(user.role)) {
-    // Redirect to their respective dashboard
-    const roleRoutes: Record<UserRole, string> = {
+    const roleRoutes: Record<string, string> = {
       [UserRole.ADMIN]: '/admin',
       [UserRole.HOSPITAL]: '/hospital',
       [UserRole.BLOOD_BANK]: '/bloodbank',
       [UserRole.DONOR]: '/donor',
       [UserRole.PATIENT]: '/patient',
     };
-    return <Navigate to={roleRoutes[user.role]} replace />;
+    return <Navigate to={roleRoutes[user.role] || '/'} replace />;
   }
 
   return <Outlet />;

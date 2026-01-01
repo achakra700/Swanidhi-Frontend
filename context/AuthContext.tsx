@@ -7,6 +7,7 @@ import { signalRService } from '../services/signalR';
 interface AuthContextType extends AuthState {
   login: (token: string, user: User) => void;
   logout: () => void;
+  hasRole: (role: UserRole) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -93,8 +94,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, 28800000);
   };
 
+  const hasRole = useCallback((role: UserRole) => {
+    return state.user?.role === role;
+  }, [state.user]);
+
   return (
-    <AuthContext.Provider value={{ ...state, login, logout }}>
+    <AuthContext.Provider value={{ ...state, login, logout, hasRole }}>
       {children}
     </AuthContext.Provider>
   );
