@@ -43,7 +43,7 @@ const NewsStrip: React.FC = () => {
           <div className="flex-1 h-px bg-slate-200" aria-hidden="true"></div>
           <div className="flex gap-2">
             {NEWS_DATA.map((_, i) => (
-              <button 
+              <button
                 key={i}
                 onClick={() => setActiveIndex(i)}
                 aria-label={`Show news item ${i + 1}`}
@@ -56,14 +56,13 @@ const NewsStrip: React.FC = () => {
 
         <div className="relative h-40 md:h-24 overflow-hidden" role="region" aria-live="polite">
           {NEWS_DATA.map((news, i) => (
-            <a 
+            <a
               key={i}
               href={news.url}
               target="_blank"
               rel="noopener noreferrer"
-              className={`absolute inset-0 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 transition-all duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] focus:outline-none focus-visible:ring-4 focus-visible:ring-rose-500/10 rounded-2xl p-2 -m-2 ${
-                activeIndex === i ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8 pointer-events-none'
-              }`}
+              className={`absolute inset-0 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 transition-all duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] focus:outline-none focus-visible:ring-4 focus-visible:ring-rose-500/10 rounded-2xl p-2 -m-2 ${activeIndex === i ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8 pointer-events-none'
+                }`}
             >
               <div className="flex-1 space-y-2">
                 <div className="flex items-center gap-3">
@@ -78,7 +77,7 @@ const NewsStrip: React.FC = () => {
               <div className="flex items-center gap-3 text-rose-600 group">
                 <span className="text-[10px] font-black uppercase tracking-widest">Original Broadcast</span>
                 <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M17 8l4 4m0 0l-4 4m4-4H3" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M17 8l4 4m0 0l-4 4m4-4H3" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
             </a>

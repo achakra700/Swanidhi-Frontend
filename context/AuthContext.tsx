@@ -19,9 +19,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isLoading: true,
   });
 
+
+
   const logout = useCallback(() => {
     localStorage.removeItem('ls_token');
     localStorage.removeItem('ls_user');
+    localStorage.removeItem('ls_role');
     setState({
       user: null,
       isAuthenticated: false,
@@ -31,6 +34,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       window.location.hash = '#/login';
     }
   }, []);
+
+  const hasRole = useCallback((role: UserRole) => {
+    return state.user?.role === role;
+  }, [state.user]);
 
   const initializeSignalR = useCallback(async (user: User) => {
     try {
@@ -81,6 +88,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = (token: string, user: User) => {
     localStorage.setItem('ls_token', token);
     localStorage.setItem('ls_user', JSON.stringify(user));
+    localStorage.setItem('ls_role', user.role);
     setState({
       user,
       isAuthenticated: true,
@@ -94,9 +102,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, 28800000);
   };
 
-  const hasRole = useCallback((role: UserRole) => {
-    return state.user?.role === role;
-  }, [state.user]);
 
   return (
     <AuthContext.Provider value={{ ...state, login, logout, hasRole }}>

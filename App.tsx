@@ -93,7 +93,9 @@ const App: React.FC = () => {
                     <Route path="/donor/history" element={<DonorDashboard />} />
                   </Route>
 
-                  <Route path="/patient" element={<PatientDashboard />} />
+                  <Route element={<ProtectedRoute allowedRoles={[UserRole.PATIENT]} />}>
+                    <Route path="/patient" element={<PatientDashboard />} />
+                  </Route>
                 </Route>
               </Route>
 

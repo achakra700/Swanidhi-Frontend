@@ -41,29 +41,28 @@ const LegalLayout: React.FC<{ children: React.ReactNode; title: string; subtitle
                     href={`#${link.path}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`px-5 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-between group ${
-                      location.pathname === link.path 
-                        ? 'bg-slate-900 text-white shadow-xl translate-x-2' 
+                    className={`px-5 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-between group ${location.pathname === link.path
+                        ? 'bg-slate-900 text-white shadow-xl translate-x-2'
                         : 'text-slate-400 hover:text-slate-950 hover:bg-slate-100'
-                    }`}
+                      }`}
                   >
                     {link.label}
                     <svg className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </a>
                 ))}
               </nav>
             </div>
-            
+
             <div className="p-8 bg-slate-950 rounded-[2.5rem] border border-white/5 shadow-2xl">
-               <div className="w-8 h-8 bg-rose-600 rounded-xl flex items-center justify-center text-white mb-4">
-                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" strokeWidth="3" /></svg>
-               </div>
-               <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Legal Clearance</p>
-               <p className="text-[11px] font-medium text-slate-300 leading-relaxed uppercase tracking-tight italic">
-                 Documents are timestamped and cryptographically signed. Unauthorized distribution is prohibited.
-               </p>
+              <div className="w-8 h-8 bg-rose-600 rounded-xl flex items-center justify-center text-white mb-4">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" strokeWidth="3" /></svg>
+              </div>
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Legal Clearance</p>
+              <p className="text-[11px] font-medium text-slate-300 leading-relaxed uppercase tracking-tight italic">
+                Documents are timestamped and cryptographically signed. Unauthorized distribution is prohibited.
+              </p>
             </div>
           </aside>
 
@@ -76,7 +75,7 @@ const LegalLayout: React.FC<{ children: React.ReactNode; title: string; subtitle
               </div>
               <h1 className="text-6xl md:text-7xl font-[900] text-slate-900 tracking-tighter uppercase leading-[0.9]">{title}</h1>
             </header>
-            
+
             <div className="max-w-4xl">
               {children}
             </div>
