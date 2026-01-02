@@ -6,8 +6,15 @@ export const useAuditLogs = () => {
   return useQuery<AuditLogEntry[]>({
     queryKey: ['audit-logs'],
     queryFn: async () => {
-      const { data } = await api.get('/api/audit/logs');
-      return data;
+      const { data: response } = await api.get('/api/admin/audit-logs');
+      // Backend returns { success: true, data: AuditLogEntry[] }
+      // Map backend actorId to frontend userId if needed, though they match mostly
+      return (response.data || []).map((log: any) => ({
+        ...log,
+        userId: log.actorId,
+        userName: log.actorName || 'System', // Backend might need to provide actorName
+        details: typeof log.details === 'string' ? log.details : JSON.stringify(log.details)
+      }));
     }
   });
 };
