@@ -144,35 +144,6 @@ export const useUpdateDonorStatus = () => {
   });
 };
 
-// Consolidated Dashboard Data Hook
-export const useAdminDashboardData = () => {
-  return useQuery<DashboardData>({
-    queryKey: ['admin-dashboard'],
-    queryFn: async () => {
-      const { data: response } = await api.get('/api/admin/dashboard');
-      return response.data;
-    },
-    // Refresh every minute to keep data reasonably fresh without spamming
-    refetchInterval: 60000
-  });
-};
-
-export interface SystemHealth {
-  status: 'UP' | 'DOWN';
-  timestamp: string;
-  services: {
-    database: string;
-    blobStorage: string;
-    signalR: string;
-  };
-}
-
-export interface DashboardData {
-  metrics: AdminStats;
-  pendingOrgs: OrganizationApplication[];
-  recentLogs: any[];
-  systemHealth: SystemHealth;
-}
 
 export const useRegisterDonor = () => {
   const queryClient = useQueryClient();
