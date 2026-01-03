@@ -13,8 +13,9 @@ import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
 import { SOSStatus, SOSRequest, EligibilityStatus, InventoryAction } from '../types';
 import SosTimeline from '../components/sos/SosTimeline';
+import DocumentVerificationPanel from '../components/admin/DocumentVerificationPanel';
 
-type AdminView = 'OVERVIEW' | 'ORG_APPROVAL' | 'DONOR_CONTROL' | 'SOS_MONITOR' | 'AUDIT_LOGS' | 'SYSTEM_HEALTH' | 'OVERRIDE';
+type AdminView = 'OVERVIEW' | 'ORG_APPROVAL' | 'DOC_VERIFY' | 'DONOR_CONTROL' | 'SOS_MONITOR' | 'AUDIT_LOGS' | 'SYSTEM_HEALTH' | 'OVERRIDE';
 
 const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -25,6 +26,7 @@ const AdminDashboard: React.FC = () => {
   // Update view based on URL path
   useEffect(() => {
     if (location.pathname.includes('/orgs')) setActiveView('ORG_APPROVAL');
+    else if (location.pathname.includes('/docs')) setActiveView('DOC_VERIFY');
     else if (location.pathname.includes('/donors')) setActiveView('DONOR_CONTROL');
     else if (location.pathname.includes('/sos')) setActiveView('SOS_MONITOR');
     else if (location.pathname.includes('/audit')) setActiveView('AUDIT_LOGS');
@@ -158,6 +160,7 @@ const AdminDashboard: React.FC = () => {
           {[
             { id: 'OVERVIEW', label: 'Monitor' },
             { id: 'ORG_APPROVAL', label: 'Registrations' },
+            { id: 'DOC_VERIFY', label: 'OCR Verify', variant: 'highlight' },
             { id: 'DONOR_CONTROL', label: 'Donors' },
             { id: 'SOS_MONITOR', label: 'Signals' },
             { id: 'OVERRIDE', label: 'Override', variant: 'emergency' },
@@ -168,7 +171,9 @@ const AdminDashboard: React.FC = () => {
               key={v.id}
               onClick={() => setActiveView(v.id as AdminView)}
               className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeView === v.id
-                ? v.variant === 'emergency' ? 'bg-rose-600 text-white shadow-lg' : 'bg-white text-slate-900 shadow-sm border border-slate-200'
+                ? v.variant === 'emergency' ? 'bg-rose-600 text-white shadow-lg'
+                  : v.variant === 'highlight' ? 'bg-blue-600 text-white shadow-lg'
+                    : 'bg-white text-slate-900 shadow-sm border border-slate-200'
                 : 'text-slate-400 hover:text-slate-600'
                 }`}
             >
@@ -236,6 +241,12 @@ const AdminDashboard: React.FC = () => {
               </tbody>
             </table>
           </div>
+        )
+      }
+
+      {
+        activeView === 'DOC_VERIFY' && (
+          <DocumentVerificationPanel />
         )
       }
 
