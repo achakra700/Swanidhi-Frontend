@@ -1,8 +1,6 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useAdminStats, usePendingOrganizations, useSystemHealth, useApproveOrganization, useRejectOrganization, useAdminDonors, useUpdateDonorStatus } from '../hooks/useAdmin';
-import { useAuditLogs } from '../hooks/useAuditLogs';
+import { useAdminDashboardData, useApproveOrganization, useRejectOrganization, useAdminDonors, useUpdateDonorStatus } from '../hooks/useAdmin';
 import { useSosRequests } from '../hooks/useSos';
 import { DashboardSkeleton } from '../components/ui/Skeleton';
 import StatusBadge from '../components/ui/StatusBadge';
@@ -35,13 +33,22 @@ const AdminDashboard: React.FC = () => {
     else setActiveView('OVERVIEW');
   }, [location.pathname]);
 
-  // Data hooks
-  const { data: stats, isLoading: statsLoading } = useAdminStats();
-  const { data: orgs, isLoading: orgsLoading } = usePendingOrganizations();
-  const { data: health, isLoading: healthLoading } = useSystemHealth();
-  const { data: logs } = useAuditLogs();
-  const { data: sosList } = useSosRequests();
-  const { data: donorsFromApi, isLoading: donorsLoading } = useAdminDonors();
+  // Data hooks - Aggregated Dashboard Data
+  const { data: dashboardData, isLoading: dashboardLoading } = useAdminDashboardData();
+
+  // Conditional fetching: Only fetch these when their specific view is active
+  const { data: sosList } = useSosRequests({ enabled: activeView === 'SOS_MONITOR' || activeView === 'OVERVIEW' });
+  const { data: donorsFromApi, isLoading: donorsLoading } = useAdminDonors({ enabled: activeView === 'DONOR_CONTROL' });
+
+  // Derived state from aggregated data
+  const stats = dashboardData?.metrics;
+  const orgs = dashboardData?.pendingOrgs;
+  const health = dashboardData?.systemHealth;
+  const logs = dashboardData?.recentLogs;
+
+  const statsLoading = dashboardLoading;
+  const orgsLoading = dashboardLoading;
+  const healthLoading = dashboardLoading;
 
   // Mutations
   const approveMutation = useApproveOrganization();

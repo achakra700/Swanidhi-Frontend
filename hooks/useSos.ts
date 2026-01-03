@@ -3,14 +3,15 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
 import { SOSRequest, SOSStatus } from '../types';
 
-export const useSosRequests = () => {
+export const useSosRequests = (options?: { enabled?: boolean }) => {
   return useQuery<SOSRequest[]>({
     queryKey: ['sos-requests'],
     queryFn: async () => {
       // Backend returns { success: true, data: { sosRequests: [], total: 0 } }
       const { data: response } = await api.get('/api/sos/list/all');
       return response.data?.sosRequests || [];
-    }
+    },
+    enabled: options?.enabled !== false // Default true if undefined
   });
 };
 
