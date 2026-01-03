@@ -53,7 +53,7 @@ export const useApproveOrganization = () => {
   return useMutation({
     mutationFn: async ({ id, type, notes }: { id: string; type: string; notes: string }) => {
       const { data } = await api.post(`/api/admin/organizations/${type.toLowerCase()}/${id}/approve`, { notes });
-      return data;
+      return data.data; // Returns { email, password }
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-orgs'] })
   });

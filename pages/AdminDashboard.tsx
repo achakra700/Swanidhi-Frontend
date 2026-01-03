@@ -68,6 +68,9 @@ const AdminDashboard: React.FC = () => {
   const [auditFilterDateStart, setAuditFilterDateStart] = useState('');
   const [auditFilterDateEnd, setAuditFilterDateEnd] = useState('');
 
+  // Credentials Modal
+  const [generatedCredentials, setGeneratedCredentials] = useState<{ email: string; password: string } | null>(null);
+
   const filteredDonors = useMemo(() => {
     if (!donorsFromApi) return [];
     return donorsFromApi.filter((d: any) =>
@@ -718,7 +721,12 @@ const AdminDashboard: React.FC = () => {
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Certification Asset</p>
                     <p className="text-xs font-bold uppercase">License_Verification.pdf</p>
                   </div>
-                  <button className="text-[10px] font-black uppercase text-blue-600 hover:text-blue-800 underline underline-offset-4 decoration-2">Open Doc</button>
+                  <button
+                    onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/documents/registration/${selectedOrg.type.toLowerCase()}/${selectedOrg.id}`, '_blank')}
+                    className="text-[10px] font-black uppercase text-blue-600 hover:text-blue-800 underline underline-offset-4 decoration-2"
+                  >
+                    Open Doc
+                  </button>
                 </div>
                 <FormField label="Administrative Remarks">
                   <textarea
@@ -754,7 +762,8 @@ const AdminDashboard: React.FC = () => {
                     disabled={rejectMutation.isPending || approveMutation.isPending}
                     onClick={() => {
                       approveMutation.mutate({ id: selectedOrg.id, type: selectedOrg.type, notes: adminRemark || 'System audit approval' }, {
-                        onSuccess: () => {
+                        onSuccess: (credentials) => {
+                          setGeneratedCredentials(credentials);
                           showToast(`Organization ${selectedOrg.name} approved.`, 'success');
                           setSelectedOrg(null);
                         },
@@ -767,6 +776,52 @@ const AdminDashboard: React.FC = () => {
                     Approve Node
                   </Button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Credentials Modal */}
+      {
+        generatedCredentials && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 backdrop-blur-md bg-slate-900/60 animate-in fade-in">
+            <div className="bg-white w-full max-w-md rounded-[3rem] p-12 shadow-2xl space-y-8">
+              <div>
+                <h2 className="text-2xl font-black uppercase tracking-tight mb-2">Node Credentials</h2>
+                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Share these credentials with the approved organization</p>
+              </div>
+              <div className="space-y-6">
+                <div className="p-6 bg-blue-50 border-2 border-blue-200 rounded-[2rem]">
+                  <p className="text-[9px] font-black text-blue-600 uppercase tracking-widest mb-2">Login Email</p>
+                  <p className="text-sm font-mono font-bold text-slate-900">{generatedCredentials.email}</p>
+                </div>
+                <div className="p-6 bg-rose-50 border-2 border-rose-200 rounded-[2rem]">
+                  <p className="text-[9px] font-black text-rose-600 uppercase tracking-widest mb-2">Default Password</p>
+                  <p className="text-sm font-mono font-bold text-slate-900 select-all">{generatedCredentials.password}</p>
+                </div>
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl">
+                  <p className="text-[9px] font-black text-amber-700 uppercase tracking-wide">
+                    ⚠️ User must change password on first login
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(`Email: ${generatedCredentials.email}\nPassword: ${generatedCredentials.password}`);
+                    showToast('Credentials copied to clipboard', 'success');
+                  }}
+                  className="flex-1 px-6 py-4 bg-slate-100 hover:bg-slate-200 rounded-2xl text-[10px] font-black uppercase transition-colors"
+                >
+                  Copy All
+                </button>
+                <button
+                  onClick={() => setGeneratedCredentials(null)}
+                  className="flex-1 px-6 py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl text-[10px] font-black uppercase transition-colors"
+                >
+                  Close
+                </button>
               </div>
             </div>
           </div>
