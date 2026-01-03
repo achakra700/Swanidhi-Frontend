@@ -62,14 +62,15 @@ const Register: React.FC = () => {
         }
       });
 
-      await api.post('/api/auth/register', formData, {
+      await api.post('/api/auth/register/institution', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
       showToast('Institutional registration packet transmitted for audit.', 'success');
       setIsSuccess(true);
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Transmission failure. Check infrastructure connectivity.', 'error');
+      const errorMsg = err.response?.data?.error?.message || err.response?.data?.message || 'Transmission failure. Check infrastructure connectivity.';
+      showToast(errorMsg, 'error');
     }
   };
 
@@ -110,7 +111,7 @@ const Register: React.FC = () => {
               <React.Fragment key={step}>
                 <div className="flex flex-col items-center gap-3">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-black transition-all duration-500 ${currentStep === step ? 'bg-slate-950 text-white shadow-xl scale-110' :
-                      currentStep > step ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-400'
+                    currentStep > step ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-400'
                     }`}>
                     {currentStep > step ? (
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
