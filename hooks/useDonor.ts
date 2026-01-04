@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DonorProfile } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useEffect } from 'react';
-import { signalRService } from '../services/signalR';
+import { socketIOService } from '../services/socketio';
 import api from '../services/api';
 
 export const useDonorProfile = () => {
@@ -27,8 +27,8 @@ export const useDonorProfile = () => {
       }
     };
 
-    signalRService.on('DonorStatusChanged', handleStatusUpdate);
-    return () => signalRService.off('DonorStatusChanged', handleStatusUpdate);
+    socketIOService.on('DonorStatusChanged', handleStatusUpdate);
+    return () => socketIOService.off('DonorStatusChanged', handleStatusUpdate);
   }, [user, queryClient]);
 
   return query;
@@ -83,3 +83,4 @@ export const useUpdateDonorProfile = () => {
     }
   });
 };
+

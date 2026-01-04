@@ -14,7 +14,7 @@ export interface SystemHealth {
   services: {
     database: string;
     blobStorage: string;
-    signalR: string;
+    socketIO: string;
   };
 }
 
@@ -111,7 +111,7 @@ export const useSystemHealth = () => {
         probes: [
           { name: 'Core API', status: 'UP', latency: '45ms' },
           { name: 'Cosmos DB', status: 'UP', latency: '12ms' },
-          { name: 'SignalR', status: 'UP', latency: '8ms' }
+          { name: 'Socket.IO', status: 'UP', latency: '8ms' }
         ]
       };
     },

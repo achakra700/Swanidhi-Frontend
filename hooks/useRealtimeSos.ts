@@ -1,7 +1,7 @@
 
 import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { signalRService } from '../services/signalR';
+import { socketIOService } from '../services/socketio';
 import { SOSRequest } from '../types';
 import api from '../services/api';
 
@@ -27,12 +27,11 @@ export const useRealtimeSos = (sosId: string) => {
       }
     };
 
-    signalRService.joinSosGroup(sosId);
-    signalRService.on('SOSUpdated', handleUpdate);
+    // Socket.IO auto-joins rooms on backend, no manual join needed
+    socketIOService.on('SOSUpdated', handleUpdate);
 
     return () => {
-      signalRService.off('SOSUpdated', handleUpdate);
-      signalRService.leaveSosGroup(sosId);
+      socketIOService.off('SOSUpdated', handleUpdate);
     };
   }, [sosId, queryClient]);
 
@@ -56,9 +55,10 @@ export const useRealtimeSosList = () => {
       queryClient.invalidateQueries({ queryKey: ['sos-requests'] });
     };
 
-    signalRService.on('GlobalSOSUpdate', handleGlobalUpdate);
-    return () => signalRService.off('GlobalSOSUpdate', handleGlobalUpdate);
+    socketIOService.on('GlobalSOSUpdate', handleGlobalUpdate);
+    return () => socketIOService.off('GlobalSOSUpdate', handleGlobalUpdate);
   }, [queryClient]);
 
   return query;
 };
+
