@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { User, AuthState, UserRole } from '../types';
 
-import { signalRService } from '../services/signalR';
+import { socketIOService } from '../services/socketio';
 
 interface AuthContextType extends AuthState {
   login: (token: string, user: User, refreshToken?: string) => void;
@@ -41,15 +41,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return state.role === role;
   }, [state.role]);
 
-  const initializeSignalR = useCallback(async (user: User) => {
+  const initializeSocketIO = useCallback(async (user: User) => {
     try {
-      await signalRService.start();
-      await signalRService.joinRoleGroup(user.role, user.id);
+      await socketIOService.start();
+      await socketIOService.joinRoleGroup(user.role, user.id);
       if (user.role === UserRole.ADMIN) {
-        await signalRService.joinRoleGroup('admin', 'global');
+        await socketIOService.joinRoleGroup('admin', 'global');
       }
     } catch (err) {
       // Background real-time failure is non-critical
+      console.warn('Socket.IO initialization failed:', err);
     }
   }, []);
 
@@ -69,7 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             isAuthenticated: true,
             isLoading: false,
           });
-          initializeSignalR(user);
+          initializeSocketIO(user);
         } catch (e) {
           logout();
         }
@@ -88,7 +89,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, [logout, initializeSignalR]);
+  }, [logout, initializeSocketIO]);
 
   const login = (token: string, user: User, refreshToken?: string) => {
     localStorage.setItem('ls_token', token);
@@ -112,7 +113,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isLoading: false,
     });
 
-    initializeSignalR(user);
+    initializeSocketIO(user);
 
     // Standard shift session (8 hours)
     setTimeout(logout, 28800000);
@@ -133,3 +134,4 @@ export const useAuth = () => {
   }
   return context;
 };
+
