@@ -47,7 +47,7 @@ export const uploadDocument = async (
     formData.append('organizationType', organizationType);
     formData.append('documentType', documentType);
 
-    const response = await api.post('/documents/upload', formData, {
+    const response = await api.post('/api/documents/upload', formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
         },
@@ -60,7 +60,7 @@ export const uploadDocument = async (
  * Get verification status by ID
  */
 export const getVerification = async (id: string): Promise<DocumentVerification> => {
-    const response = await api.get(`/documents/verification/${id}`);
+    const response = await api.get(`/api/documents/verification/${id}`);
     return response.data.data;
 };
 
@@ -73,7 +73,7 @@ export const getOcrResults = async (id: string): Promise<{
     matchScore?: number;
     discrepancies?: string[];
 }> => {
-    const response = await api.get(`/documents/verification/${id}/ocr`);
+    const response = await api.get(`/api/documents/verification/${id}/ocr`);
     return response.data.data;
 };
 
@@ -81,7 +81,7 @@ export const getOcrResults = async (id: string): Promise<{
  * Get all verifications for an organization
  */
 export const getOrganizationVerifications = async (orgId: string): Promise<DocumentVerification[]> => {
-    const response = await api.get(`/documents/organization/${orgId}`);
+    const response = await api.get(`/api/documents/organization/${orgId}`);
     return response.data.data;
 };
 
@@ -89,7 +89,7 @@ export const getOrganizationVerifications = async (orgId: string): Promise<Docum
  * Get pending verifications (Admin only)
  */
 export const getPendingVerifications = async (): Promise<DocumentVerification[]> => {
-    const response = await api.get('/documents/pending');
+    const response = await api.get('/api/documents/pending');
     return response.data.data;
 };
 
@@ -97,7 +97,7 @@ export const getPendingVerifications = async (): Promise<DocumentVerification[]>
  * Approve document verification (Admin only)
  */
 export const approveVerification = async (id: string, notes?: string): Promise<DocumentVerification> => {
-    const response = await api.post(`/documents/verification/${id}/approve`, { notes });
+    const response = await api.post(`/api/documents/verification/${id}/approve`, { notes });
     return response.data.data;
 };
 
@@ -105,7 +105,7 @@ export const approveVerification = async (id: string, notes?: string): Promise<D
  * Reject document verification (Admin only)
  */
 export const rejectVerification = async (id: string, reason: string): Promise<DocumentVerification> => {
-    const response = await api.post(`/documents/verification/${id}/reject`, { reason });
+    const response = await api.post(`/api/documents/verification/${id}/reject`, { reason });
     return response.data.data;
 };
 
@@ -117,7 +117,7 @@ export const validateAgainstRegistration = async (
     registrationNumber: string,
     organizationName: string
 ): Promise<{ matchScore: number; discrepancies: string[] }> => {
-    const response = await api.post(`/documents/verification/${id}/validate`, {
+    const response = await api.post(`/api/documents/verification/${id}/validate`, {
         registrationNumber,
         organizationName,
     });
