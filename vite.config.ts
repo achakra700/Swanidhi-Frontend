@@ -28,7 +28,7 @@ export default defineConfig(({ mode }) => {
             three: ['three', '@react-three/fiber', '@react-three/drei'],
             forms: ['react-hook-form', 'zod', '@hookform/resolvers'],
             query: ['@tanstack/react-query'],
-            signalr: ['@microsoft/signalr']
+
           }
         }
       }
