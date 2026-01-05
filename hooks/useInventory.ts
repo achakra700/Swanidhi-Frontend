@@ -7,7 +7,7 @@ export const useBloodInventory = () => {
   return useQuery<BloodInventory[]>({
     queryKey: ['blood-inventory'],
     queryFn: async () => {
-      const { data } = await api.get('/inventory/status');
+      const { data } = await api.get('/api/inventory/status');
       return data;
     },
   });
@@ -17,7 +17,7 @@ export const useUpdateInventory = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (update: { type: BloodType; units: number }) => {
-      const { data } = await api.put('/inventory/sync', update);
+      const { data } = await api.put('/api/inventory/sync', update);
       return data;
     },
     onSuccess: () => {
