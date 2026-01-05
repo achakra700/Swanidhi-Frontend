@@ -81,7 +81,8 @@ export const useApproveOrganization = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, type, notes }: { id: string; type: string; notes: string }) => {
-      const { data } = await api.post(`/api/admin/organizations/${type.toLowerCase()}/${id}/approve`, { notes });
+      const apiType = type === 'BLOOD_BANK' ? 'bloodbank' : type.toLowerCase();
+      const { data } = await api.post(`/api/admin/organizations/${apiType}/${id}/approve`, { notes });
       return data.data; // Returns { email, password }
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-orgs'] })

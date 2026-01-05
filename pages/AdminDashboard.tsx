@@ -729,7 +729,16 @@ const AdminDashboard: React.FC = () => {
                     <p className="text-xs font-bold uppercase">License_Verification.pdf</p>
                   </div>
                   <button
-                    onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/documents/registration/${selectedOrg.type.toLowerCase()}/${selectedOrg.id}`, '_blank')}
+                    onClick={() => {
+                      if (selectedOrg.documentUrl) {
+                        window.open(selectedOrg.documentUrl, '_blank');
+                      } else {
+                        // Fallback for old records or if URL missing
+                        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+                        const path = `/api/documents/registration/${selectedOrg.type.toLowerCase()}/${selectedOrg.id}`;
+                        window.open(`${baseUrl}${path}`, '_blank');
+                      }
+                    }}
                     className="text-[10px] font-black uppercase text-blue-600 hover:text-blue-800 underline underline-offset-4 decoration-2"
                   >
                     Open Doc
